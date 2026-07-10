@@ -4,40 +4,72 @@
 <meta charset="UTF-8">
 <title>USDT</title>
 <style>
-body { font-family: 'Segoe UI', Arial; background: #0a0a0f; color: #0f0; margin: 0; padding: 20px; }
-.dashboard { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-.card { background: #111118; border: 2px solid #00ff41; border-radius: 10px; padding: 20px; }
-h2 { margin: 0 0 15px 0; color: #00ff41; font-size: 15px; }
-input { 
-  width: 100%; 
-  padding: 12px; 
-  background: #1a1a22; 
-  border: 1px solid #00ff41; 
-  border-radius: 6px; 
-  color: #0f0; 
-  font-size: 17px; 
+body {
+  font-family: 'Segoe UI', Arial;
+  background: #0a0a0f;
+  color: #0f0;
+  margin: 0;
+  padding: 20px;
+}
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+.card {
+  background: #111118;
+  border: 2px solid #00ff41;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+h2 {
+  margin: 0 0 20px 0;
+  color: #00ff41;
+  font-size: 16px;
+}
+.input {
+  width: 100%;
+  padding: 12px;
+  background: #1a1a22;
+  border: 1px solid #00ff41;
+  border-radius: 6px;
+  color: #0f0;
+  font-size: 17px;
   margin: 8px 0;
 }
-button { width: 100%; padding: 12px; background: #00ff41; color: black; border: none; border-radius: 6px; font-weight: bold; }
+button {
+  width: 100%;
+  padding: 12px;
+  background: #00ff41;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  margin-top: 15px;
+}
 </style>
 </head>
 <body>
 <div class="dashboard">
   <div class="card">
     <h2>Калькулятор</h2>
-    <input type="number" id="amount" placeholder="Сумма USDT" step="0.01">
-    <input type="number" id="percent" placeholder="Процент" step="0.01">
+    <input class="input" type="number" id="amount" placeholder="Сумма USDT" step="0.01">
+    <input class="input" type="number" id="percent" placeholder="Процент" step="0.01">
     <button onclick="calculate()">РАССЧИТАТЬ</button>
   </div>
   
   <div class="card">
     <h2>Сегодня</h2>
-    <div id="today" style="font-size:28px;">0 USDT</div>
+    <div id="today" style="font-size:28px; font-weight:bold;">0 USDT</div>
   </div>
   
   <div class="card">
     <h2>Общая</h2>
-    <div id="total" style="font-size:28px;">0 USDT</div>
+    <div id="total" style="font-size:28px; font-weight:bold;">0 USDT</div>
   </div>
   
   <div class="card">
@@ -65,7 +97,7 @@ function calculate() {
 function render() {
   let today = 0, all = 0, html = '';
   records.forEach(r => {
-    html += `<div style="padding:8px; margin:6px 0; background:#1a1a22; border-left:3px solid #00ff41;">${r.date} — ${r.amount} (${r.percent}%) = ${r.total.toFixed(2)}</div>`;
+    html += `<div style="padding:10px; margin:6px 0; background:#1a1a22; border-left:3px solid #00ff41;">${r.date} — ${r.amount} USDT</div>`;
     all += r.amount;
     if (r.date.includes(new Date().toLocaleDateString('ru-RU'))) today += r.amount;
   });
