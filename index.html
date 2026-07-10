@@ -1,57 +1,94 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Калькулятор USDT</title>
+<title>Calculadora USDT</title>
 <style>
 body {
-  font-family: Arial;
-  background: #0f0f23;
-  color: white;
-  text-align: center;
-  padding: 50px;
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(135deg, #0a0a1f, #1a0033);
+  color: #fff;
+  margin: 0;
+  padding: 20px;
 }
 .container {
-  max-width: 400px;
+  max-width: 500px;
   margin: 0 auto;
-  background: #1a1a2e;
-  padding: 30px;
+  background: rgba(255,255,255,0.05);
   border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 0 30px rgba(138,43,226,0.3);
+}
+h1 {
+  text-align: center;
+  color: #bb86fc;
+}
+.tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+.tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  background: rgba(255,255,255,0.1);
+  cursor: pointer;
+  border-radius: 10px 10px 0 0;
+}
+.tab.active {
+  background: #bb86fc;
+  color: black;
 }
 input, button {
-  padding: 12px;
-  margin: 10px;
-  width: 80%;
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 10px;
   font-size: 18px;
 }
 button {
-  background: #00ff88;
+  background: #bb86fc;
   color: black;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  font-weight: bold;
+}
+.result {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 15px;
+  font-size: 20px;
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Калькулятор USDT</h1>
+  <h1>📊 Calculadora USDT</h1>
   
-  <input type="number" id="amount" placeholder="Сумма USDT" step="0.01">
-  <input type="number" id="percent" placeholder="Процент за работу" step="0.01">
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(0)">Mensual</div>
+    <div class="tab" onclick="showTab(1)">Anual</div>
+  </div>
   
-  <button onclick="calculate()">Рассчитать</button>
+  <input type="number" id="amount" placeholder="Cantidad en USDT" step="0.01">
+  <input type="number" id="percent" placeholder="Porcentaje de trabajo" step="0.01">
   
-  <div id="result" style="margin-top:20px; font-size:20px;"></div>
+  <button onclick="calculate()">Calcular</button>
+  
+  <div id="result" class="result"></div>
 </div>
 
 <script>
+function showTab(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+}
+
 function calculate() {
   let amount = parseFloat(document.getElementById('amount').value);
   let percent = parseFloat(document.getElementById('percent').value);
   
   if (isNaN(amount) || isNaN(percent)) {
-    document.getElementById('result').innerHTML = "Введите корректные числа";
+    document.getElementById('result').innerHTML = "Por favor ingresa números válidos";
     return;
   }
   
@@ -59,10 +96,10 @@ function calculate() {
   let total = amount + fee;
   
   document.getElementById('result').innerHTML = `
-    Сумма: ${amount} USDT<br>
-    Процент: ${percent}%<br>
-    Комиссия: ${fee.toFixed(2)} USDT<br>
-    <b>Итого: ${total.toFixed(2)} USDT</b>
+    Cantidad: ${amount} USDT<br>
+    Porcentaje: ${percent}%<br>
+    Comisión: ${fee.toFixed(2)} USDT<br>
+    <b>Total: ${total.toFixed(2)} USDT</b>
   `;
 }
 </script>
