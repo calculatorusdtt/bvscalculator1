@@ -5,70 +5,66 @@
 <title>Калькулятор USDT</title>
 <style>
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background: #0f0f0f;
-  color: #ddd;
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://source.unsplash.com/random/1920x1080/?money,crypto') no-repeat center center fixed;
+  background-size: cover;
+  color: #fff;
   margin: 0;
-  padding: 40px 20px;
+  padding: 20px;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.calculator {
+.container {
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
-  max-width: 800px;
-  width: 100%;
-  background: #1a1a1a;
+  gap: 20px;
+}
+.left, .right {
+  flex: 1;
+  background: rgba(20,20,30,0.95);
+  border: 2px solid #ff00ff;
   border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-}
-.left {
-  flex: 1;
-  padding: 40px;
-  background: #111;
-}
-.right {
-  flex: 1;
-  padding: 40px;
-  background: #222;
+  padding: 30px;
+  box-shadow: 0 0 20px #ff00ff;
 }
 h1 {
-  margin: 0 0 30px 0;
-  font-size: 26px;
+  text-align: center;
+  color: #ff00ff;
+  text-shadow: 0 0 10px #ff00ff;
 }
 input {
   width: 100%;
-  padding: 16px;
+  padding: 15px;
   margin: 12px 0;
-  background: #2a2a2a;
-  border: none;
+  background: #111;
+  border: 1px solid #ff00ff;
   border-radius: 8px;
   color: white;
-  font-size: 18px;
 }
 button {
   width: 100%;
   padding: 16px;
-  background: #6200ee;
-  color: white;
+  background: #ff00ff;
+  color: black;
   border: none;
   border-radius: 8px;
-  font-size: 18px;
-  margin-top: 10px;
+  font-weight: bold;
 }
 .result-line {
-  margin: 15px 0;
-  font-size: 18px;
+  margin: 12px 0;
+  padding: 8px;
+  background: rgba(255,0,255,0.1);
+  border-left: 4px solid #ff00ff;
 }
-.result-line strong {
-  color: #bb86fc;
+.stats {
+  margin-top: 20px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 </style>
 </head>
 <body>
-<div class="calculator">
+<div class="container">
   <div class="left">
     <h1>Калькулятор USDT</h1>
     <input type="number" id="amount" placeholder="Сумма в USDT" step="0.01">
@@ -79,6 +75,9 @@ button {
   <div class="right">
     <h1>Результат</h1>
     <div id="result"></div>
+    
+    <h2 style="margin-top:30px;">Статистика</h2>
+    <div id="stats" class="stats"></div>
   </div>
 </div>
 
@@ -87,24 +86,39 @@ function calculate() {
   let amount = parseFloat(document.getElementById('amount').value);
   let percent = parseFloat(document.getElementById('percent').value);
   
-  if (isNaN(amount) || isNaN(percent)) {
-    document.getElementById('result').innerHTML = "<p>Введите корректные числа</p>";
-    return;
-  }
-  
+  if (isNaN(amount) || isNaN(percent)) return;
+
   let fee = amount * (percent / 100);
   let total = amount + fee;
-  let net = amount - fee;
-  
-  document.getElementById('result').innerHTML = `
+  let date = new Date().toLocaleString('ru-RU');
+
+  let html = `
+    <div class="result-line">Дата: ${date}</div>
     <div class="result-line">Сумма: <strong>${amount} USDT</strong></div>
     <div class="result-line">Процент: <strong>${percent}%</strong></div>
     <div class="result-line">Комиссия: <strong>${fee.toFixed(2)} USDT</strong></div>
-    <hr>
-    <div class="result-line">Итого к оплате: <strong>${total.toFixed(2)} USDT</strong></div>
-    <div class="result-line">Сумма после вычета: <strong>${net.toFixed(2)} USDT</strong></div>
+    <div class="result-line">Итого: <strong>${total.toFixed(2)} USDT</strong></div>
   `;
+  document.getElementById('result').innerHTML = html;
+
+  // Сохраняем в статистику
+  let stats = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
+  stats.unshift({date, amount, percent, fee, total});
+  localStorage.setItem('usdt_stats', JSON.stringify(stats));
+  
+  showStats();
 }
+
+function showStats() {
+  let stats = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
+  let html = '';
+  stats.forEach(s => {
+    html += `<div class="result-line">${s.date} — ${s.amount} USDT (${s.percent}%) = ${s.total.toFixed(2)}</div>`;
+  });
+  document.getElementById('stats').innerHTML = html;
+}
+
+showStats();
 </script>
 </body>
 </html>
