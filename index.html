@@ -4,93 +4,92 @@
 <meta charset="UTF-8">
 <title>USDT Dashboard</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600&display=swap');
-
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Segoe UI', Arial;
   background: #0a0a0f;
   color: #0f0;
   margin: 0;
   padding: 20px;
 }
-.container {
-  max-width: 1100px;
+.dashboard {
+  max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
 }
 .card {
-  flex: 1;
   background: #111118;
-  border: 1px solid #00ff41;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 0 15px rgba(0,255,65,0.15);
+  border: 2px solid #00ff41;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 0 20px rgba(0,255,65,0.2);
+  display: flex;
+  flex-direction: column;
 }
 h2 {
-  margin: 0 0 15px 0;
+  margin: 0 0 12px 0;
   color: #00ff41;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
   letter-spacing: 1px;
 }
-.value {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 32px;
-  font-weight: 700;
-  color: #00ff88;
+.input-group {
+  margin: 8px 0;
 }
 input {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: #1a1a22;
   border: 1px solid #00ff41;
   border-radius: 6px;
   color: #0f0;
-  font-size: 18px;
+  font-size: 17px;
 }
 button {
-  width: 100%;
-  padding: 14px;
+  padding: 12px;
   background: #00ff41;
   color: black;
   border: none;
   border-radius: 6px;
-  font-weight: 600;
-  margin-top: 10px;
+  font-weight: bold;
+  margin-top: 8px;
 }
 .record {
   background: #1a1a22;
-  padding: 12px;
-  margin: 8px 0;
+  padding: 10px;
+  margin: 6px 0;
   border-radius: 6px;
-  border-left: 4px solid #00ff41;
-  font-size: 14px;
+  border-left: 3px solid #00ff41;
+  font-size: 13px;
 }
 </style>
 </head>
 <body>
-<div class="container">
+<div class="dashboard">
   <div class="card">
     <h2>Калькулятор</h2>
-    <input type="number" id="amount" placeholder="Сумма USDT" step="0.01">
-    <input type="number" id="percent" placeholder="Процент" step="0.01">
+    <div class="input-group">
+      <input type="number" id="amount" placeholder="Сумма USDT" step="0.01">
+    </div>
+    <div class="input-group">
+      <input type="number" id="percent" placeholder="Процент" step="0.01">
+    </div>
     <button onclick="calculate()">РАССЧИТАТЬ</button>
   </div>
   
   <div class="card">
     <h2>Сегодня</h2>
-    <div id="today" class="value">0 USDT</div>
+    <div id="today" style="font-size:28px; font-weight:bold;">0 USDT</div>
   </div>
   
   <div class="card">
     <h2>Общая</h2>
-    <div id="total" class="value">0 USDT</div>
+    <div id="total" style="font-size:28px; font-weight:bold;">0 USDT</div>
   </div>
   
   <div class="card">
     <h2>История</h2>
-    <div id="history"></div>
+    <div id="history" style="max-height:500px; overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -108,7 +107,6 @@ function calculate() {
 
   records.unshift({date, amount, percent, total});
   localStorage.setItem('usdt_records', JSON.stringify(records));
-  
   render();
 }
 
@@ -117,8 +115,14 @@ function render() {
   let all = 0;
   let html = '';
 
-  records.forEach(r => {
-    html += `<div class="record">${r.date} — ${r.amount} USDT (${r.percent}%) = ${r.total}</div>`;
+  records.forEach((r, i) => {
+    html += `
+      <div class="record">
+        ${r.date}<br>
+        ${r.amount} USDT (${r.percent}%) = ${r.total.toFixed(2)}
+        <button onclick="deleteRecord(${i})" style="float:right; background:#ff4444; padding:2px 8px;">X</button>
+      </div>
+    `;
     all += r.amount;
     if (r.date.includes(new Date().toLocaleDateString('ru-RU'))) today += r.amount;
   });
@@ -126,6 +130,12 @@ function render() {
   document.getElementById('today').textContent = today.toFixed(2) + ' USDT';
   document.getElementById('total').textContent = all.toFixed(2) + ' USDT';
   document.getElementById('history').innerHTML = html;
+}
+
+function deleteRecord(i) {
+  records.splice(i, 1);
+  localStorage.setItem('usdt_records', JSON.stringify(records));
+  render();
 }
 
 render();
