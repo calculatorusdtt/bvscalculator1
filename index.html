@@ -2,125 +2,90 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Калькулятор USDT</title>
+<title>USDT Dashboard</title>
 <style>
 body {
-  font-family: 'Segoe UI', Arial;
-  background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://source.unsplash.com/random/1920x1080/?money,finance') no-repeat center center fixed;
-  background-size: cover;
-  color: #ddd;
+  font-family: 'Segoe UI', monospace;
+  background: #0a0a0f;
+  color: #0f0;
   margin: 0;
-  padding: 40px 20px;
-  min-height: 100vh;
+  padding: 20px;
 }
-.container {
-  max-width: 900px;
+.dashboard {
+  max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 15px;
 }
-.left, .right {
-  flex: 1;
-  background: rgba(15,15,25,0.95);
-  border: 2px solid #ff00ff;
-  border-radius: 16px;
-  padding: 30px;
-}
-h1 {
-  text-align: center;
-  color: #ff00ff;
-  text-shadow: 0 0 10px #ff00ff;
-}
-input {
-  width: 100%;
-  padding: 16px;
-  margin: 12px 0;
-  background: #222;
-  border: 1px solid #ff00ff;
+.card {
+  background: #111118;
+  border: 1px solid #00ff41;
   border-radius: 8px;
-  color: white;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0,255,65,0.2);
+}
+h2 {
+  margin: 0 0 15px 0;
+  color: #00ff41;
   font-size: 18px;
 }
-button {
-  width: 100%;
-  padding: 16px;
-  background: #ff00ff;
-  color: black;
-  border: none;
-  border-radius: 8px;
+.value {
+  font-size: 28px;
   font-weight: bold;
 }
-.result-line {
-  padding: 12px;
-  background: rgba(255,0,255,0.1);
-  margin: 8px 0;
-  border-left: 4px solid #ff00ff;
-}
-.stats {
-  max-height: 400px;
-  overflow-y: auto;
+.time {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #111;
+  padding: 8px 16px;
+  border: 1px solid #00ff41;
+  border-radius: 6px;
+  font-size: 16px;
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="left">
-    <h1>Калькулятор USDT</h1>
-    <input type="number" id="amount" placeholder="Сумма в USDT" step="0.01">
-    <input type="number" id="percent" placeholder="Процент за работу" step="0.01">
-    <button onclick="calculate()">Рассчитать</button>
+<div class="time" id="time"></div>
+
+<div class="dashboard">
+  <div class="card">
+    <h2>Сегодня</h2>
+    <div id="today" class="value">0 USDT</div>
   </div>
   
-  <div class="right">
-    <h1>Результат</h1>
-    <div id="result"></div>
-    
-    <h2>Статистика</h2>
-    <div id="stats" class="stats"></div>
+  <div class="card">
+    <h2>Столбец 2</h2>
+    <div class="value">-</div>
+  </div>
+  
+  <div class="card">
+    <h2>Столбец 3</h2>
+    <div class="value">-</div>
+  </div>
+  
+  <div class="card">
+    <h2>Общая статистика</h2>
+    <div id="total" class="value">0 USDT</div>
   </div>
 </div>
 
 <script>
-function calculate() {
-  let amount = parseFloat(document.getElementById('amount').value);
-  let percent = parseFloat(document.getElementById('percent').value);
-  
-  if (isNaN(amount) || isNaN(percent)) return;
+// Пример данных (замени на свою логику)
+let todayTotal = 12450;
+let allTotal = 89340;
 
-  let fee = amount * (percent / 100);
-  let total = amount + fee;
-  let date = new Date().toLocaleString('ru-RU');
+document.getElementById('today').textContent = todayTotal + ' USDT';
+document.getElementById('total').textContent = allTotal + ' USDT';
 
-  let html = `
-    <div class="result-line">Дата: ${date}</div>
-    <div class="result-line">Сумма: <strong>${amount} USDT</strong></div>
-    <div class="result-line">Процент: <strong>${percent}%</strong></div>
-    <div class="result-line">Комиссия: <strong>${fee.toFixed(2)} USDT</strong></div>
-    <div class="result-line">Итого: <strong>${total.toFixed(2)} USDT</strong></div>
-  `;
-  document.getElementById('result').innerHTML = html;
-
-  let stats = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
-  stats.unshift({date, amount, percent, fee, total});
-  localStorage.setItem('usdt_stats', JSON.stringify(stats));
-  
-  showStats();
+// Таймер
+function updateTime() {
+  const now = new Date();
+  document.getElementById('time').textContent = now.toLocaleTimeString('ru-RU');
 }
-
-function showStats() {
-  let stats = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
-  let todayTotal = 0;
-  let html = '';
-
-  stats.forEach(s => {
-    html += `<div class="result-line">${s.date} — ${s.amount} USDT (${s.percent}%) = ${s.total.toFixed(2)}</div>`;
-    if (s.date.includes(new Date().toLocaleDateString('ru-RU'))) todayTotal += s.amount;
-  });
-
-  document.getElementById('stats').innerHTML = `<p>Сегодня: <strong>${todayTotal.toFixed(2)} USDT</strong></p>` + html;
-}
-
-showStats();
+setInterval(updateTime, 1000);
+updateTime();
 </script>
 </body>
 </html>
