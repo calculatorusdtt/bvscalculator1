@@ -6,8 +6,8 @@
 <style>
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
-  background: #0a0a0a;
-  color: #e0e0e0;
+  background: #0f0f0f;
+  color: #ddd;
   margin: 0;
   padding: 40px 20px;
   min-height: 100vh;
@@ -15,27 +15,35 @@ body {
   align-items: center;
   justify-content: center;
 }
-.container {
-  max-width: 480px;
+.calculator {
+  display: flex;
+  max-width: 800px;
   width: 100%;
-  background: #111111;
+  background: #1a1a1a;
   border-radius: 16px;
-  padding: 40px 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  border: 1px solid #333;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+.left {
+  flex: 1;
+  padding: 40px;
+  background: #111;
+}
+.right {
+  flex: 1;
+  padding: 40px;
+  background: #222;
 }
 h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  font-size: 28px;
-  color: #ffffff;
+  margin: 0 0 30px 0;
+  font-size: 26px;
 }
 input {
   width: 100%;
   padding: 16px;
   margin: 12px 0;
-  background: #1f1f1f;
-  border: 1px solid #444;
+  background: #2a2a2a;
+  border: none;
   border-radius: 8px;
   color: white;
   font-size: 18px;
@@ -43,39 +51,35 @@ input {
 button {
   width: 100%;
   padding: 16px;
-  margin-top: 10px;
   background: #6200ee;
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
+  margin-top: 10px;
 }
-button:hover {
-  background: #7c3aed;
+.result-line {
+  margin: 15px 0;
+  font-size: 18px;
 }
-.result {
-  margin-top: 25px;
-  padding: 20px;
-  background: #1a1a1a;
-  border-radius: 10px;
-  font-size: 20px;
-  line-height: 1.6;
-  min-height: 80px;
+.result-line strong {
+  color: #bb86fc;
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Калькулятор USDT</h1>
+<div class="calculator">
+  <div class="left">
+    <h1>Калькулятор USDT</h1>
+    <input type="number" id="amount" placeholder="Сумма в USDT" step="0.01">
+    <input type="number" id="percent" placeholder="Процент за работу" step="0.01">
+    <button onclick="calculate()">Рассчитать</button>
+  </div>
   
-  <input type="number" id="amount" placeholder="Сумма в USDT" step="0.01">
-  <input type="number" id="percent" placeholder="Процент за работу" step="0.01">
-  
-  <button onclick="calculate()">Рассчитать</button>
-  
-  <div id="result" class="result"></div>
+  <div class="right">
+    <h1>Результат</h1>
+    <div id="result"></div>
+  </div>
 </div>
 
 <script>
@@ -84,18 +88,21 @@ function calculate() {
   let percent = parseFloat(document.getElementById('percent').value);
   
   if (isNaN(amount) || isNaN(percent)) {
-    document.getElementById('result').innerHTML = "Введите корректные числа";
+    document.getElementById('result').innerHTML = "<p>Введите корректные числа</p>";
     return;
   }
   
   let fee = amount * (percent / 100);
   let total = amount + fee;
+  let net = amount - fee;
   
   document.getElementById('result').innerHTML = `
-    Сумма: ${amount} USDT<br>
-    Процент: ${percent}%<br>
-    Комиссия: ${fee.toFixed(2)} USDT<br>
-    <strong>Итого: ${total.toFixed(2)} USDT</strong>
+    <div class="result-line">Сумма: <strong>${amount} USDT</strong></div>
+    <div class="result-line">Процент: <strong>${percent}%</strong></div>
+    <div class="result-line">Комиссия: <strong>${fee.toFixed(2)} USDT</strong></div>
+    <hr>
+    <div class="result-line">Итого к оплате: <strong>${total.toFixed(2)} USDT</strong></div>
+    <div class="result-line">Сумма после вычета: <strong>${net.toFixed(2)} USDT</strong></div>
   `;
 }
 </script>
