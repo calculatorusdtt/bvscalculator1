@@ -2,141 +2,278 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>USDT</title>
+<title>USDT Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body {
-  font-family: 'Segoe UI', Arial;
-  background: #0a0a0f;
-  color: #0f0;
-  margin: 0;
-  padding: 20px;
-}
-.dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 12px;
-}
-.card {
-  background: #111118;
-  border: 2px solid #00ff41;
-  border-radius: 10px;
-  padding: 20px;
-}
-h2 {
-  margin: 0 0 15px 0;
-  color: #00ff41;
-  font-size: 15px;
-}
-.input {
-  width: 100%;
-  padding: 12px;
-  background: #1a1a22;
-  border: 1px solid #00ff41;
-  border-radius: 6px;
-  color: #0f0;
-  font-size: 17px;
-  margin: 8px 0;
-  box-sizing: border-box;
-}
-button {
-  width: 100%;
-  padding: 12px;
-  background: #00ff41;
-  color: black;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-}
-.record {
-  background: #1a1a22;
-  padding: 10px;
-  margin: 6px 0;
-  border-radius: 6px;
-  border-left: 3px solid #00ff41;
-  font-size: 13px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.delete {
-  background: #ff4444;
-  color: white;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  body {
+    background: linear-gradient(135deg, #052e16 0%, #000000 100%);
+  }
 </style>
 </head>
-<body>
-<div class="dashboard">
-  <div class="card">
-    <h2>Калькулятор</h2>
-    <input class="input" type="number" id="amount" placeholder="Сумма USDT" step="0.01">
-    <input class="input" type="number" id="percent" placeholder="Процент" step="0.01">
-    <button onclick="calculate()">РАССЧИТАТЬ</button>
-  </div>
+<body class="text-zinc-200">
+<div class="max-w-[1300px] mx-auto p-6">
   
-  <div class="card">
-    <h2>Сегодня</h2>
-    <div id="today" style="font-size:28px; font-weight:bold;">0 USDT</div>
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold tracking-tight">USDT Dashboard</h1>
+    <button onclick="exportToCSV()" 
+            class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm flex items-center gap-2">
+      📥 Экспорт в CSV
+    </button>
   </div>
-  
-  <div class="card">
-    <h2>Общая</h2>
-    <div id="total" style="font-size:28px; font-weight:bold;">0 USDT</div>
+
+  <!-- Выбор даты -->
+  <div class="flex items-end gap-3 mb-6">
+    <div>
+      <label class="text-sm text-zinc-400">Выбрать дату</label>
+      <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2.5 text-white">
+    </div>
+    <button onclick="showStatsByDate()"
+            class="bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 rounded-2xl font-semibold">
+      Показать статистику за дату
+    </button>
   </div>
-  
-  <div class="card">
-    <h2>История</h2>
-    <div id="history"></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    
+    <!-- Калькулятор -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm text-zinc-400">Сумма в USDT</label>
+          <input id="amount" type="number" step="0.01"
+                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
+        </div>
+        <div>
+          <label class="text-sm text-zinc-400">Процент за работу</label>
+          <input id="percent" type="number" step="0.01"
+                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
+        </div>
+      </div>
+      
+      <button onclick="calculate()"
+              class="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
+        Рассчитать
+      </button>
+    </div>
+
+    <!-- Сегодня -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
+      <div id="today-list" class="max-h-[320px] overflow-y-auto space-y-2 text-sm"></div>
+      <div class="mt-4 pt-4 border-t border-zinc-800">
+        <div class="text-sm text-zinc-400">Итого сегодня</div>
+        <div id="today-total" class="text-4xl font-bold text-emerald-400">0.00</div>
+      </div>
+    </div>
+
+    <!-- Общая -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 flex flex-col backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-2">Общая статистика</h2>
+      <div id="total" class="text-4xl font-bold mt-auto text-emerald-400">0.00</div>
+      <div class="text-sm text-zinc-400">USDT за всё время</div>
+    </div>
+
+    <!-- История -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-4">История</h2>
+      <div id="history" class="space-y-2 max-h-[420px] overflow-y-auto pr-1"></div>
+    </div>
+
   </div>
+
+  <!-- Кнопки -->
+  <div class="mt-8 flex gap-4">
+    <button onclick="startWork()"
+            class="flex-1 bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
+      Начать работу
+    </button>
+    
+    <button onclick="endWork()"
+            class="flex-1 bg-red-500 hover:bg-red-600 transition text-white font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-red-500/30">
+      Завершить работу
+    </button>
+  </div>
+
+  <!-- График Doughnut -->
+  <div class="mt-8 bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+    <h2 class="text-emerald-400 font-semibold mb-4">Соотношение (Doughnut)</h2>
+    <canvas id="chart" class="w-full max-w-[400px] mx-auto" height="200"></canvas>
+  </div>
+
 </div>
 
 <script>
 let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
+let chartInstance = null;
 
 function calculate() {
-  let amount = parseFloat(document.getElementById('amount').value);
-  let percent = parseFloat(document.getElementById('percent').value);
+  const amount = parseFloat(document.getElementById('amount').value);
+  const percent = parseFloat(document.getElementById('percent').value);
   if (isNaN(amount) || isNaN(percent)) return;
 
-  let total = amount * (1 + percent/100);
-  let date = new Date().toLocaleString('ru-RU');
+  const total = amount * (1 + percent / 100);
+  const date = new Date().toLocaleString('ru-RU');
 
-  records.unshift({date, amount, percent, total});
+  records.unshift({ date, amount, percent, total });
   localStorage.setItem('usdt_records', JSON.stringify(records));
-  render();
+  renderAll();
 }
 
-function render() {
-  let today = 0, all = 0, html = '';
+function renderAll() {
+  renderToday();
+  renderHistory();
+  renderTotal();
+  renderDoughnut();
+}
 
-  records.forEach((r, i) => {
+function renderToday() {
+  const container = document.getElementById('today-list');
+  const totalEl = document.getElementById('today-total');
+  
+  const todayStr = new Date().toLocaleDateString('ru-RU');
+  let todayRecords = records.filter(r => r.date.includes(todayStr));
+  let sum = 0;
+  let html = '';
+
+  todayRecords.forEach(r => {
+    sum += r.amount;
     html += `
-      <div class="record">
-        <div>${r.date} — ${r.amount} USDT (${r.percent}%) = ${r.total.toFixed(2)}</div>
-        <button class="delete" onclick="deleteRecord(${i})">X</button>
+      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 text-sm">
+        ${r.amount} USDT → <span class="font-semibold text-emerald-400">${r.total.toFixed(2)}</span> (${r.percent}%)
       </div>
     `;
-    all += r.amount;
-    if (r.date.includes(new Date().toLocaleDateString('ru-RU'))) today += r.amount;
   });
 
-  document.getElementById('today').textContent = today.toFixed(2) + ' USDT';
-  document.getElementById('total').textContent = all.toFixed(2) + ' USDT';
+  container.innerHTML = html || '<div class="text-zinc-500 text-sm">Сегодня ещё нет операций</div>';
+  totalEl.textContent = sum.toFixed(2);
+}
+
+function renderHistory() {
+  let html = '';
+  records.forEach((r, i) => {
+    html += `
+      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
+        <div class="text-sm">
+          <div class="text-zinc-400">${r.date}</div>
+          <div>${r.amount} USDT → <span class="font-semibold text-emerald-400">${r.total.toFixed(2)}</span> (${r.percent}%)</div>
+        </div>
+        <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+          <button onclick="editRecord(${i})" class="text-emerald-400 hover:text-emerald-300 px-2">✎</button>
+          <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2">✕</button>
+        </div>
+      </div>
+    `;
+  });
   document.getElementById('history').innerHTML = html;
 }
 
-function deleteRecord(i) {
-  records.splice(i, 1);
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-  render();
+function renderTotal() {
+  let all = records.reduce((sum, r) => sum + r.amount, 0);
+  document.getElementById('total').textContent = all.toFixed(2);
 }
 
-render();
+function deleteRecord(i) {
+  if (!confirm('Удалить запись?')) return;
+  records.splice(i, 1);
+  localStorage.setItem('usdt_records', JSON.stringify(records));
+  renderAll();
+}
+
+function editRecord(i) {
+  const r = records[i];
+  const newAmount = prompt('Новая сумма:', r.amount);
+  const newPercent = prompt('Новый процент:', r.percent);
+  
+  if (newAmount && newPercent) {
+    records[i] = {
+      ...r,
+      amount: parseFloat(newAmount),
+      percent: parseFloat(newPercent),
+      total: parseFloat(newAmount) * (1 + parseFloat(newPercent) / 100)
+    };
+    localStorage.setItem('usdt_records', JSON.stringify(records));
+    renderAll();
+  }
+}
+
+function showStatsByDate() {
+  const dateInput = document.getElementById('selected-date').value;
+  if (!dateInput) return alert('Выберите дату');
+
+  const selectedDate = new Date(dateInput).toLocaleDateString('ru-RU');
+  let filtered = records.filter(r => r.date.includes(selectedDate));
+
+  let total = 0;
+  let earned = 0;
+
+  filtered.forEach(r => {
+    total += r.total;
+    earned += r.total - r.amount;
+  });
+
+  alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${total.toFixed(2)} USDT\nЗаработано: ${earned.toFixed(2)} USDT`);
+}
+
+function renderDoughnut() {
+  const ctx = document.getElementById('chart');
+  if (chartInstance) chartInstance.destroy();
+
+  let totalWithdrawn = records.reduce((sum, r) => sum + r.total, 0);
+  let totalEarned = records.reduce((sum, r) => sum + (r.total - r.amount), 0);
+
+  chartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Сумма снятая', 'Заработано (комиссия)'],
+      datasets: [{
+        data: [totalWithdrawn, totalEarned],
+        backgroundColor: ['#10b981', '#f59e0b'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#ddd' } }
+      }
+    }
+  });
+}
+
+function exportToCSV() {
+  if (records.length === 0) return alert('Нет данных');
+  let csv = 'Дата,Сумма,Процент,Итого\n';
+  records.forEach(r => csv += `"${r.date}",${r.amount},${r.percent},${r.total}\n`);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'usdt_history.csv';
+  link.click();
+}
+
+function startWork() {
+  alert('Удачного дня и хороших профитов! 💰');
+}
+
+function endWork() {
+  const todayStr = new Date().toLocaleDateString('ru-RU');
+  let todayRecords = records.filter(r => r.date.includes(todayStr));
+  
+  let totalWithdrawn = 0;
+  let totalEarned = 0;
+
+  todayRecords.forEach(r => {
+    totalWithdrawn += r.total;
+    totalEarned += r.total - r.amount;
+  });
+
+  alert(`Общая сумма снятая сегодня: ${totalWithdrawn.toFixed(2)} USDT\nЗаработано: ${totalEarned.toFixed(2)} USDT`);
+}
+
+renderAll();
 </script>
 </body>
 </html>
