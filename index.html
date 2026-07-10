@@ -23,13 +23,11 @@ body {
   border: 2px solid #00ff41;
   border-radius: 10px;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
 }
 h2 {
-  margin: 0 0 20px 0;
+  margin: 0 0 15px 0;
   color: #00ff41;
-  font-size: 16px;
+  font-size: 15px;
 }
 .input {
   width: 100%;
@@ -40,6 +38,7 @@ h2 {
   color: #0f0;
   font-size: 17px;
   margin: 8px 0;
+  box-sizing: border-box;
 }
 button {
   width: 100%;
@@ -49,7 +48,25 @@ button {
   border: none;
   border-radius: 6px;
   font-weight: bold;
-  margin-top: 15px;
+}
+.record {
+  background: #1a1a22;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 6px;
+  border-left: 3px solid #00ff41;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.delete {
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -96,14 +113,27 @@ function calculate() {
 
 function render() {
   let today = 0, all = 0, html = '';
-  records.forEach(r => {
-    html += `<div style="padding:10px; margin:6px 0; background:#1a1a22; border-left:3px solid #00ff41;">${r.date} — ${r.amount} USDT</div>`;
+
+  records.forEach((r, i) => {
+    html += `
+      <div class="record">
+        <div>${r.date} — ${r.amount} USDT (${r.percent}%) = ${r.total.toFixed(2)}</div>
+        <button class="delete" onclick="deleteRecord(${i})">X</button>
+      </div>
+    `;
     all += r.amount;
     if (r.date.includes(new Date().toLocaleDateString('ru-RU'))) today += r.amount;
   });
+
   document.getElementById('today').textContent = today.toFixed(2) + ' USDT';
   document.getElementById('total').textContent = all.toFixed(2) + ' USDT';
   document.getElementById('history').innerHTML = html;
+}
+
+function deleteRecord(i) {
+  records.splice(i, 1);
+  localStorage.setItem('usdt_records', JSON.stringify(records));
+  render();
 }
 
 render();
