@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Калькулятор USDT</title>
+<style>
+body {
+  font-family: Arial;
+  background: #0f0f23;
+  color: white;
+  text-align: center;
+  padding: 50px;
+}
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  background: #1a1a2e;
+  padding: 30px;
+  border-radius: 20px;
+}
+input, button {
+  padding: 12px;
+  margin: 10px;
+  width: 80%;
+  font-size: 18px;
+}
+button {
+  background: #00ff88;
+  color: black;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Калькулятор USDT</h1>
+  
+  <input type="number" id="amount" placeholder="Сумма USDT" step="0.01">
+  <input type="number" id="percent" placeholder="Процент за работу" step="0.01">
+  
+  <button onclick="calculate()">Рассчитать</button>
+  
+  <div id="result" style="margin-top:20px; font-size:20px;"></div>
+</div>
+
+<script>
+function calculate() {
+  let amount = parseFloat(document.getElementById('amount').value);
+  let percent = parseFloat(document.getElementById('percent').value);
+  
+  if (isNaN(amount) || isNaN(percent)) {
+    document.getElementById('result').innerHTML = "Введите корректные числа";
+    return;
+  }
+  
+  let fee = amount * (percent / 100);
+  let total = amount + fee;
+  
+  document.getElementById('result').innerHTML = `
+    Сумма: ${amount} USDT<br>
+    Процент: ${percent}%<br>
+    Комиссия: ${fee.toFixed(2)} USDT<br>
+    <b>Итого: ${total.toFixed(2)} USDT</b>
+  `;
+}
+</script>
+</body>
+</html>
