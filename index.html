@@ -1,24 +1,146 @@
-<!-- ... твой HTML до <script> остаётся таким же ... -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>USDT Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    background: linear-gradient(135deg, #052e16 0%, #000000 100%);
+  }
+</style>
+</head>
+<body class="text-zinc-200">
+<div class="max-w-[1300px] mx-auto p-6">
+  
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-emerald-400">USDT DASHBOARD</h1>
+    
+    <div class="flex gap-3 items-end">
+      <div>
+        <label class="text-xs text-zinc-400">Выбрать дату</label>
+        <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-white text-sm">
+      </div>
+      <button onclick="showStatsByDate()"
+              class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-2xl text-sm font-semibold">
+        Показать за дату
+      </button>
+
+      <button onclick="resetPermanentStats()" 
+              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl">
+        Сбросить статистику
+      </button>
+      <button onclick="exportToCSV()" 
+              class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm flex items-center gap-2">
+        📥 Экспорт
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    
+    <!-- Калькулятор -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
+          <input id="amount" type="number" step="0.01"
+                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
+        </div>
+        <div>
+          <label class="text-sm text-zinc-400">Твой процент</label>
+          <input id="percent" type="number" step="0.01"
+                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
+        </div>
+      </div>
+      
+      <button onclick="calculate()"
+              class="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
+        Рассчитать
+      </button>
+    </div>
+
+    <!-- Сегодня -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
+      <div class="space-y-3">
+        <div>
+          <div class="text-sm text-zinc-400">Общая сумма</div>
+          <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
+        </div>
+        <div>
+          <div class="text-sm text-zinc-400">Заработано (твоя комиссия)</div>
+          <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Общая статистика -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
+      <div class="space-y-3">
+        <div>
+          <div class="text-sm text-zinc-400">Общая сумма</div>
+          <div id="total-sent" class="text-3xl font-bold">0.00</div>
+        </div>
+        <div>
+          <div class="text-sm text-zinc-400">Заработано (твоя комиссия)</div>
+          <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- История -->
+    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <h2 class="text-emerald-400 font-semibold mb-4">История</h2>
+      <div id="history" class="space-y-2 max-h-[420px] overflow-y-auto pr-1"></div>
+    </div>
+
+  </div>
+
+  <!-- Кнопки -->
+  <div class="mt-8 flex gap-4">
+    <button onclick="startWork()"
+            class="flex-1 bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
+      Начать работу
+    </button>
+    
+    <button onclick="endWork()"
+            class="flex-1 bg-red-500 hover:bg-red-600 transition text-white font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-red-500/30">
+      Завершить работу
+    </button>
+  </div>
+
+  <!-- График -->
+  <div class="mt-8 bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+    <h2 class="text-emerald-400 font-semibold mb-4">График</h2>
+    <div style="height: 320px; max-width: 520px; margin: 0 auto;">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+</div>
 
 <script>
 let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let workActive = false;
 let chartInstance = null;
 
-// === НОВАЯ МИГРАЦИЯ (самое важное) ===
+// === НОВАЯ МИГРАЦИЯ ===
 const todayStr = new Date().toLocaleDateString('ru-RU');
 let migrated = false;
 
 records = records.map(r => {
   let changed = false;
 
-  // Если нет поля isToday — ставим правильно
   if (r.isToday === undefined) {
     r.isToday = r.date && r.date.includes(todayStr) ? true : false;
     changed = true;
   }
 
-  // Если нет earned / receivedByUser — пересчитываем
   if (r.earned === undefined && r.amount != null && r.percent != null) {
     r.earned = r.amount * (r.percent / 100);
     r.receivedByUser = r.amount - r.earned;
@@ -85,10 +207,9 @@ function renderHistory() {
 }
 
 function renderPermanentStats() {
-  // НОВЫЙ УМНЫЙ ФИЛЬТР
   const permanent = records.filter(r => {
-    if (!r.date.includes(todayStr)) return true;           // старые дни — всегда в общую
-    return !r.isToday;                                     // сегодняшний день только если уже завершён
+    if (!r.date.includes(todayStr)) return true;
+    return !r.isToday;
   });
 
   let totalSent = 0, totalEarned = 0;
