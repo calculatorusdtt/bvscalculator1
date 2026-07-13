@@ -129,7 +129,7 @@ let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let workActive = false;
 let chartInstance = null;
 
-// === НОВАЯ МИГРАЦИЯ ===
+// === МИГРАЦИЯ СТАРЫХ ДАННЫХ ===
 const todayStr = new Date().toLocaleDateString('ru-RU');
 let migrated = false;
 
@@ -137,7 +137,7 @@ records = records.map(r => {
   let changed = false;
 
   if (r.isToday === undefined) {
-    r.isToday = r.date && r.date.includes(todayStr) ? true : false;
+    r.isToday = false;
     changed = true;
   }
 
@@ -157,11 +157,6 @@ if (migrated) {
 // === конец миграции ===
 
 function calculate() {
-  if (!workActive) {
-    alert("Вы не начали рабочий день!");
-    return;
-  }
-
   const amount = parseFloat(document.getElementById('amount').value);
   const percent = parseFloat(document.getElementById('percent').value);
   if (isNaN(amount) || isNaN(percent)) return;
@@ -170,7 +165,7 @@ function calculate() {
   const receivedByUser = amount - earned;
   const date = new Date().toLocaleString('ru-RU');
 
-  records.unshift({ date, amount, percent, earned, receivedByUser, isToday: true });
+  records.unshift({ date, amount, percent, earned, receivedByUser });
   localStorage.setItem('usdt_records', JSON.stringify(records));
   renderAll();
 }
@@ -183,7 +178,7 @@ function renderAll() {
 }
 
 function renderToday() {
-  const todayRecords = records.filter(r => r.date.includes(todayStr) && r.isToday);
+  const todayRecords = records.filter(r => r.date.includes(todayStr));
   let totalSent = 0, totalEarned = 0;
   todayRecords.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
   document.getElementById('today-total-sent').textContent = totalSent.toFixed(2);
@@ -191,7 +186,7 @@ function renderToday() {
 }
 
 function renderHistory() {
-  const todayRecords = records.filter(r => r.date.includes(todayStr) && r.isToday);
+  const todayRecords = records.filter(r => r.date.includes(todayStr));
   let html = '';
   todayRecords.forEach((r, i) => {
     html += `
@@ -200,20 +195,15 @@ function renderHistory() {
           <div class="text-zinc-400">${r.date}</div>
           <div>${r.amount} USDT → <span class="font-semibold text-emerald-400">${r.receivedByUser.toFixed(2)}</span> (${r.percent}%)</div>
         </div>
-        <button onclick="deleteTodayRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100">✕</button>
+        <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100">✕</button>
       </div>`;
   });
   document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
 }
 
 function renderPermanentStats() {
-  const permanent = records.filter(r => {
-    if (!r.date.includes(todayStr)) return true;
-    return !r.isToday;
-  });
-
   let totalSent = 0, totalEarned = 0;
-  permanent.forEach(r => {
+  records.forEach(r => {
     totalSent += r.amount;
     totalEarned += r.earned || 0;
   });
@@ -222,15 +212,9 @@ function renderPermanentStats() {
   document.getElementById('total-earned').textContent = totalEarned.toFixed(2);
 }
 
-function deleteTodayRecord(indexInAll) {
-  const todayIndexes = [];
-  records.forEach((r, idx) => {
-    if (r.date.includes(todayStr) && r.isToday) todayIndexes.push(idx);
-  });
-  const realIndex = todayIndexes[indexInAll];
-  if (realIndex === undefined) return;
+function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
-  records.splice(realIndex, 1);
+  records.splice(index, 1);
   localStorage.setItem('usdt_records', JSON.stringify(records));
   renderAll();
 }
@@ -252,9 +236,9 @@ function showStatsByDate() {
 function renderDoughnut() {
   const ctx = document.getElementById('chart');
   if (chartInstance) chartInstance.destroy();
-  const permanent = records.filter(r => !r.date.includes(todayStr) || !r.isToday);
+
   let totalSent = 0, totalEarned = 0;
-  permanent.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
+  records.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
 
   chartInstance = new Chart(ctx, {
     type: 'doughnut',
@@ -266,28 +250,11 @@ function renderDoughnut() {
   });
 }
 
-function startWork() { workActive = true; alert('Рабочий день начат! Удачи!'); }
-
-function endWork() {
-  if (!workActive) { alert("Рабочий день ещё не начат!"); return; }
-  records.forEach(r => { if (r.date.includes(todayStr) && r.isToday) r.isToday = false; });
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-  workActive = false;
-
-  const todayRecords = records.filter(r => r.date.includes(todayStr) && !r.isToday);
-  let totalSent = 0, totalEarned = 0;
-  todayRecords.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
-
-  alert(`Рабочий день завершён!\n\nОбщая сумма: ${totalSent.toFixed(2)} USDT\nЗаработано: ${totalEarned.toFixed(2)} USDT`);
-  renderAll();
+function startWork() {
+  workActive = true;
+  alert('Рабочий день начат! Удачи!');
 }
 
-function resetPermanentStats() {
-  if (!confirm('Сбросить всю общую статистику?')) return;
-  records = records.filter(r => r.isToday);
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-  renderAll();
-}
-
+// Кнопка "Завершить работу" больше не нужна — можешь её удалить
 renderAll();
 </script>
