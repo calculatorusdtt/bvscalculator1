@@ -1,171 +1,51 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<title>USDT Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {
-    background: linear-gradient(135deg, #052e16 0%, #000000 100%);
-  }
-</style>
-</head>
-<body class="text-zinc-200">
-<div class="max-w-[1300px] mx-auto p-6">
-  
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold tracking-tight text-emerald-400">USDT DASHBOARD</h1>
-    
-    <div class="flex gap-3 items-end">
-      <div>
-        <label class="text-xs text-zinc-400">Выбрать дату</label>
-        <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-white text-sm">
-      </div>
-      <button onclick="showStatsByDate()"
-              class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-2xl text-sm font-semibold">
-        Показать за дату
-      </button>
-
-      <button onclick="resetPermanentStats()" 
-              class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl">
-        Сбросить статистику
-      </button>
-      <button onclick="exportToCSV()" 
-              class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm flex items-center gap-2">
-        📥 Экспорт
-      </button>
-    </div>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-    
-    <!-- Калькулятор -->
-    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
-      
-      <div class="space-y-4">
-        <div>
-          <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
-          <input id="amount" type="number" step="0.01"
-                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
-        </div>
-        <div>
-          <label class="text-sm text-zinc-400">Твой процент</label>
-          <input id="percent" type="number" step="0.01"
-                 class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg">
-        </div>
-      </div>
-      
-      <button onclick="calculate()"
-              class="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
-        Рассчитать
-      </button>
-    </div>
-
-    <!-- Сегодня -->
-    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
-      <div class="space-y-3">
-        <div>
-          <div class="text-sm text-zinc-400">Общая сумма</div>
-          <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
-        </div>
-        <div>
-          <div class="text-sm text-zinc-400">Заработано (твоя комиссия)</div>
-          <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Общая статистика -->
-    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
-      <div class="space-y-3">
-        <div>
-          <div class="text-sm text-zinc-400">Общая сумма</div>
-          <div id="total-sent" class="text-3xl font-bold">0.00</div>
-        </div>
-        <div>
-          <div class="text-sm text-zinc-400">Заработано (твоя комиссия)</div>
-          <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- История -->
-    <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <h2 class="text-emerald-400 font-semibold mb-4">История</h2>
-      <div id="history" class="space-y-2 max-h-[420px] overflow-y-auto pr-1"></div>
-    </div>
-
-  </div>
-
-  <!-- Кнопки -->
-  <div class="mt-8 flex gap-4">
-    <button onclick="startWork()"
-            class="flex-1 bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
-      Начать работу
-    </button>
-    
-    <button onclick="endWork()"
-            class="flex-1 bg-red-500 hover:bg-red-600 transition text-white font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-red-500/30">
-      Завершить работу
-    </button>
-  </div>
-
-  <!-- График -->
-  <div class="mt-8 bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-    <h2 class="text-emerald-400 font-semibold mb-4">График</h2>
-    <div style="height: 320px; max-width: 520px; margin: 0 auto;">
-      <canvas id="chart"></canvas>
-    </div>
-  </div>
-
-</div>
-
 <script>
 let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
-let workActive = false;
 let chartInstance = null;
-
-// === МИГРАЦИЯ СТАРЫХ ДАННЫХ ===
 const todayStr = new Date().toLocaleDateString('ru-RU');
-let migrated = false;
 
+// === Миграция старых данных ===
 records = records.map(r => {
-  let changed = false;
-
-  if (r.isToday === undefined) {
-    r.isToday = false;
-    changed = true;
+  // Если старая запись (есть percent, но нет sentByMe)
+  if (r.sentByMe === undefined && r.percent != null && r.amount != null) {
+    // Старая логика: комиссия = amount * percent / 100
+    r.sentByMe = r.amount - (r.earned || (r.amount * r.percent / 100));
+    r.profit = r.earned || (r.amount * r.percent / 100);
   }
-
-  if (r.earned === undefined && r.amount != null && r.percent != null) {
-    r.earned = r.amount * (r.percent / 100);
-    r.receivedByUser = r.amount - r.earned;
-    changed = true;
+  // Если нет profit — считаем
+  if (r.profit === undefined && r.amount != null && r.sentByMe != null) {
+    r.profit = r.amount - r.sentByMe;
   }
-
-  if (changed) migrated = true;
   return r;
 });
-
-if (migrated) {
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-}
+localStorage.setItem('usdt_records', JSON.stringify(records));
 // === конец миграции ===
 
 function calculate() {
-  const amount = parseFloat(document.getElementById('amount').value);
-  const percent = parseFloat(document.getElementById('percent').value);
-  if (isNaN(amount) || isNaN(percent)) return;
+  const amount = parseFloat(document.getElementById('amount').value);      // сколько прислал человек
+  const sentByMe = parseFloat(document.getElementById('sentByMe').value);  // сколько отправил я
 
-  const earned = amount * (percent / 100);
-  const receivedByUser = amount - earned;
+  if (isNaN(amount) || isNaN(sentByMe)) {
+    alert('Введите обе суммы');
+    return;
+  }
+
+  if (sentByMe > amount) {
+    alert('Сумма, которую ты отправил, не может быть больше суммы, которую тебе прислали');
+    return;
+  }
+
+  const profit = amount - sentByMe;                         // чистая прибыль
+  const percent = amount > 0 ? (profit / amount * 100) : 0;  // процент
   const date = new Date().toLocaleString('ru-RU');
 
-  records.unshift({ date, amount, percent, earned, receivedByUser });
+  records.unshift({
+    date,
+    amount,          // сколько прислал человек
+    sentByMe,        // сколько отправил я
+    profit,          // чистая прибыль
+    percent: +percent.toFixed(2)
+  });
+
   localStorage.setItem('usdt_records', JSON.stringify(records));
   renderAll();
 }
@@ -179,42 +59,60 @@ function renderAll() {
 
 function renderToday() {
   const todayRecords = records.filter(r => r.date.includes(todayStr));
-  let totalSent = 0, totalEarned = 0;
-  todayRecords.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
-  document.getElementById('today-total-sent').textContent = totalSent.toFixed(2);
-  document.getElementById('today-earned').textContent = totalEarned.toFixed(2);
+  let totalAmount = 0, totalProfit = 0;
+
+  todayRecords.forEach(r => {
+    totalAmount += r.amount || 0;
+    totalProfit += r.profit || 0;
+  });
+
+  document.getElementById('today-total-sent').textContent = totalAmount.toFixed(2);
+  document.getElementById('today-earned').textContent = totalProfit.toFixed(2);
 }
 
 function renderHistory() {
   const todayRecords = records.filter(r => r.date.includes(todayStr));
   let html = '';
+
   todayRecords.forEach((r, i) => {
     html += `
       <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
         <div class="text-sm">
           <div class="text-zinc-400">${r.date}</div>
-          <div>${r.amount} USDT → <span class="font-semibold text-emerald-400">${r.receivedByUser.toFixed(2)}</span> (${r.percent}%)</div>
+          <div>
+            Пришло: ${r.amount} → Отправил: ${r.sentByMe || 0}<br>
+            <span class="font-semibold text-emerald-400">Прибыль: ${r.profit.toFixed(2)}</span> 
+            (${r.percent || 0}%)
+          </div>
         </div>
         <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100">✕</button>
       </div>`;
   });
+
   document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
 }
 
 function renderPermanentStats() {
-  let totalSent = 0, totalEarned = 0;
+  let totalAmount = 0, totalProfit = 0;
+
   records.forEach(r => {
-    totalSent += r.amount;
-    totalEarned += r.earned || 0;
+    totalAmount += r.amount || 0;
+    totalProfit += r.profit || 0;
   });
 
-  document.getElementById('total-sent').textContent = totalSent.toFixed(2);
-  document.getElementById('total-earned').textContent = totalEarned.toFixed(2);
+  document.getElementById('total-sent').textContent = totalAmount.toFixed(2);
+  document.getElementById('total-earned').textContent = totalProfit.toFixed(2);
 }
 
 function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
-  records.splice(index, 1);
+
+  // Нужно найти правильный индекс среди сегодняшних
+  const todayRecords = records.filter(r => r.date.includes(todayStr));
+  const realIndex = records.indexOf(todayRecords[index]);
+  if (realIndex === -1) return;
+
+  records.splice(realIndex, 1);
   localStorage.setItem('usdt_records', JSON.stringify(records));
   renderAll();
 }
@@ -222,14 +120,20 @@ function deleteRecord(index) {
 function showStatsByDate() {
   const dateInput = document.getElementById('selected-date').value;
   if (!dateInput) return alert('Выберите дату');
+
   const selectedDate = new Date(dateInput).toLocaleDateString('ru-RU');
   const filtered = records.filter(r => r.date.includes(selectedDate));
-  let totalSent = 0, totalEarned = 0;
-  filtered.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
+
+  let totalAmount = 0, totalProfit = 0;
+  filtered.forEach(r => {
+    totalAmount += r.amount || 0;
+    totalProfit += r.profit || 0;
+  });
+
   if (filtered.length === 0) {
     alert(`За ${selectedDate} нет записей`);
   } else {
-    alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalSent.toFixed(2)} USDT\nЗаработано: ${totalEarned.toFixed(2)} USDT`);
+    alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalAmount.toFixed(2)} USDT\nЧистая прибыль: ${totalProfit.toFixed(2)} USDT`);
   }
 }
 
@@ -237,24 +141,55 @@ function renderDoughnut() {
   const ctx = document.getElementById('chart');
   if (chartInstance) chartInstance.destroy();
 
-  let totalSent = 0, totalEarned = 0;
-  records.forEach(r => { totalSent += r.amount; totalEarned += r.earned || 0; });
+  let totalAmount = 0, totalProfit = 0;
+  records.forEach(r => {
+    totalAmount += r.amount || 0;
+    totalProfit += r.profit || 0;
+  });
 
   chartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Сумма отправленная', 'Заработано (комиссия)'],
-      datasets: [{ data: [totalSent, totalEarned], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }]
+      labels: ['Сумма отправленная', 'Чистая прибыль'],
+      datasets: [{
+        data: [totalAmount, totalProfit],
+        backgroundColor: ['#10b981', '#f59e0b'],
+        borderWidth: 0
+      }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#ddd' } } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#ddd' } }
+      }
+    }
   });
 }
 
 function startWork() {
-  workActive = true;
   alert('Рабочий день начат! Удачи!');
 }
 
-// Кнопка "Завершить работу" больше не нужна — можешь её удалить
+function resetPermanentStats() {
+  if (!confirm('Сбросить всю статистику? Это действие нельзя отменить.')) return;
+  records = [];
+  localStorage.setItem('usdt_records', JSON.stringify(records));
+  renderAll();
+}
+
+function exportToCSV() {
+  if (records.length === 0) return alert('Нет данных');
+  let csv = 'Дата,Пришло,Отправил я,Прибыль,Процент\n';
+  records.forEach(r => {
+    csv += `"${r.date}",${r.amount},${r.sentByMe || 0},${r.profit || 0},${r.percent || 0}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'usdt_history.csv';
+  link.click();
+}
+
 renderAll();
 </script>
