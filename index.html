@@ -28,9 +28,9 @@
     }
     .history-item { animation: slideUpFade 0.4s ease forwards; }
     .progress-bar {
-      height: 10px;
+      height: 14px;
       border-radius: 9999px;
-      background: #1f2937;
+      background: rgba(0,0,0,0.35);
       overflow: hidden;
     }
     .progress-fill {
@@ -39,13 +39,11 @@
       background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
       transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    /* Цвета прибыли */
     .profit-low { border-left: 4px solid #4ade80; }
     .profit-mid { border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.08); }
     .profit-high { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.15); box-shadow: 0 0 12px rgba(22, 163, 74, 0.25); }
     .profit-mega { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.12); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
 
-    /* Экран пароля */
     #lock-screen {
       position: fixed;
       inset: 0;
@@ -142,27 +140,17 @@
         </div>
       </div>
 
-      <!-- Цель на день -->
+      <!-- Цель на день (только ввод) -->
       <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-4">Цель на день</h2>
         <div class="space-y-3">
           <div>
             <label class="text-sm text-zinc-400">Твоя цель (USDT)</label>
             <input id="daily-goal" type="number" step="100" value="2000"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2 text-white"
+                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-white text-xl font-semibold"
                    onchange="saveGoal()">
           </div>
-          <div>
-            <div class="text-sm text-zinc-400 mb-1">Прогресс</div>
-            <div class="progress-bar">
-              <div id="goal-progress" class="progress-fill" style="width: 0%"></div>
-            </div>
-            <div class="flex justify-between text-xs text-zinc-400 mt-1">
-              <span id="goal-current">0</span>
-              <span id="goal-percent">0%</span>
-            </div>
-          </div>
-          <div id="goal-status" class="text-sm text-zinc-400"></div>
+          <div id="goal-status" class="text-sm text-zinc-400 pt-2"></div>
         </div>
       </div>
 
@@ -204,12 +192,23 @@
       </div>
     </div>
 
-    <!-- Кнопка -->
+    <!-- ПРОГРЕСС ЦЕЛИ (вместо кнопки Начать работу) -->
     <div class="mt-8">
-      <button onclick="startWork()"
-              class="neon-btn w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
-        Начать работу
-      </button>
+      <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-black font-bold text-lg">Цель на день</div>
+          <div class="text-black font-bold text-lg">
+            <span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div id="goal-progress-big" class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-black/80 text-sm font-medium">
+          <span id="goal-status-big">Осталось 2000 USDT</span>
+          <span id="goal-percent-big">0%</span>
+        </div>
+      </div>
     </div>
 
     <!-- График -->
@@ -231,37 +230,38 @@ const todayStr = new Date().toLocaleDateString('ru-RU');
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 function playSound(type = 'click') {
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
 
-  if (type === 'click') {
-    osc.frequency.value = 800;
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.1);
-  } else if (type === 'success') {
-    osc.frequency.value = 1200;
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.3);
-  } else if (type === 'record') {
-    // Двойной звук рекорда
-    [0, 0.15].forEach((delay, i) => {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.connect(g);
-      g.connect(audioCtx.destination);
-      o.frequency.value = 900 + i * 300;
-      g.gain.setValueAtTime(0.2, audioCtx.currentTime + delay);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.25);
-      o.start(audioCtx.currentTime + delay);
-      o.stop(audioCtx.currentTime + delay + 0.25);
-    });
-  }
+    if (type === 'click') {
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    } else if (type === 'success') {
+      osc.frequency.value = 1200;
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === 'record') {
+      [0, 0.15].forEach((delay, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.frequency.value = 900 + i * 300;
+        g.gain.setValueAtTime(0.2, audioCtx.currentTime + delay);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.25);
+        o.start(audioCtx.currentTime + delay);
+        o.stop(audioCtx.currentTime + delay + 0.25);
+      });
+    }
+  } catch(e) {}
 }
 
 // ===== ПАРОЛЬ =====
@@ -274,7 +274,6 @@ function checkPin() {
   const saved = getPin();
 
   if (!saved) {
-    // Первый запуск — устанавливаем PIN
     if (input.length < 4) {
       document.getElementById('pin-error').textContent = 'Минимум 4 цифры';
       document.getElementById('pin-error').classList.remove('hidden');
@@ -310,7 +309,6 @@ function changePin() {
   }
 }
 
-// Проверка при загрузке
 window.onload = () => {
   const pin = getPin();
   if (!pin) {
@@ -348,7 +346,29 @@ function getGoal() {
   return parseFloat(localStorage.getItem('daily_goal')) || 2000;
 }
 
-// ===== Рекорд =====
+// ===== Рекорд (исправленный) =====
+function recalculateRecord() {
+  // Группируем прибыль по дням
+  const dailyProfits = {};
+  records.forEach(r => {
+    const day = r.date.split(',')[0].trim(); // берём только дату
+    dailyProfits[day] = (dailyProfits[day] || 0) + (r.profit || 0);
+  });
+
+  let maxProfit = 0;
+  let maxDate = '';
+  for (const [day, profit] of Object.entries(dailyProfits)) {
+    if (profit > maxProfit) {
+      maxProfit = profit;
+      maxDate = day;
+    }
+  }
+
+  localStorage.setItem('record_profit', maxProfit);
+  localStorage.setItem('record_date', maxDate);
+  return { profit: maxProfit, date: maxDate };
+}
+
 function getRecord() {
   return {
     profit: parseFloat(localStorage.getItem('record_profit')) || 0,
@@ -415,7 +435,6 @@ function calculate() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 }, colors: ['#10b981', '#34d399', '#fbbf24'] });
   }
 
-  // Проверяем рекорд после добавления
   const todayProfit = records
     .filter(r => r.date.includes(todayStr))
     .reduce((sum, r) => sum + (r.profit || 0), 0);
@@ -450,19 +469,24 @@ function renderToday() {
   animateValue(elAmount, parseFloat(elAmount.textContent) || 0, totalAmount);
   animateValue(elProfit, parseFloat(elProfit.textContent) || 0, totalProfit);
 
-  // Цель
+  // Цель (большая шкала внизу)
   const goal = getGoal();
   document.getElementById('daily-goal').value = goal;
-  const percent = Math.min((totalProfit / goal) * 100, 100);
-  document.getElementById('goal-progress').style.width = percent + '%';
-  document.getElementById('goal-current').textContent = totalProfit.toFixed(0);
-  document.getElementById('goal-percent').textContent = Math.round(percent) + '%';
+  document.getElementById('goal-target-big').textContent = goal;
 
-  const status = document.getElementById('goal-status');
+  const percent = Math.min((totalProfit / goal) * 100, 100);
+  document.getElementById('goal-progress-big').style.width = percent + '%';
+  document.getElementById('goal-current-big').textContent = totalProfit.toFixed(0);
+  document.getElementById('goal-percent-big').textContent = Math.round(percent) + '%';
+
+  const statusBig = document.getElementById('goal-status-big');
+  const statusSmall = document.getElementById('goal-status');
   if (totalProfit >= goal) {
-    status.innerHTML = '<span class="text-emerald-400 font-semibold">🎯 Цель достигнута!</span>';
+    statusBig.textContent = '🎯 Цель достигнута!';
+    statusSmall.innerHTML = '<span class="text-emerald-400 font-semibold">🎯 Цель достигнута!</span>';
   } else {
-    status.textContent = `Осталось ${(goal - totalProfit).toFixed(0)} USDT`;
+    statusBig.textContent = `Осталось ${(goal - totalProfit).toFixed(0)} USDT`;
+    statusSmall.textContent = `Осталось ${(goal - totalProfit).toFixed(0)} USDT`;
   }
 }
 
@@ -521,7 +545,8 @@ function renderPermanentStats() {
 }
 
 function updateRecordDisplay() {
-  const record = getRecord();
+  // Всегда пересчитываем рекорд из актуальных данных
+  const record = recalculateRecord();
   document.getElementById('record-profit').textContent = record.profit.toFixed(2);
   document.getElementById('record-date').textContent = record.date ? `📅 ${record.date}` : 'Рекорда пока нет';
 }
@@ -548,6 +573,9 @@ function deleteRecord(index) {
 
   records.splice(realIndex, 1);
   localStorage.setItem('usdt_records', JSON.stringify(records));
+  
+  // После удаления пересчитываем рекорд
+  recalculateRecord();
   renderAll();
 }
 
@@ -594,11 +622,6 @@ function renderDoughnut() {
       }
     }
   });
-}
-
-function startWork() {
-  playSound('click');
-  alert('Рабочий день начат! Удачи! 🐱');
 }
 
 function resetPermanentStats() {
