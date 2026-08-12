@@ -6,10 +6,56 @@
   <title>USDT Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body {
       background: linear-gradient(135deg, #052e16 0%, #000000 100%);
       min-height: 100vh;
+    }
+
+    /* Неоновое свечение */
+    .neon-card {
+      transition: all 0.3s ease;
+    }
+    .neon-card:hover {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 40px rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+    }
+    .neon-btn {
+      transition: all 0.25s ease;
+    }
+    .neon-btn:hover {
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
+      transform: translateY(-1px);
+    }
+
+    /* Анимация появления записи */
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .history-item {
+      animation: slideUpFade 0.4s ease forwards;
+    }
+
+    /* Прогресс-бар */
+    .progress-bar {
+      height: 8px;
+      border-radius: 9999px;
+      background: #1f2937;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
+      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
   </style>
 </head>
@@ -18,20 +64,22 @@
     
     <!-- Заголовок -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-      <h1 class="text-3xl font-bold tracking-tight text-emerald-400">USDT DASHBOARD</h1>
+      <h1 class="text-3xl font-bold tracking-tight text-emerald-400 flex items-center gap-3">
+        <span class="text-4xl">🐱</span> USDT DASHBOARD
+      </h1>
       
       <div class="flex flex-wrap gap-3 items-end">
         <div>
           <label class="text-xs text-zinc-400">Выбрать дату</label>
           <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-white text-sm">
         </div>
-        <button onclick="showStatsByDate()" class="bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-2xl text-sm font-semibold">
+        <button onclick="showStatsByDate()" class="neon-btn bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-2xl text-sm font-semibold">
           Показать за дату
         </button>
-        <button onclick="resetPermanentStats()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl">
+        <button onclick="resetPermanentStats()" class="neon-btn px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl">
           Сбросить статистику
         </button>
-        <button onclick="exportToCSV()" class="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
+        <button onclick="exportToCSV()" class="neon-btn px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
           📥 Экспорт
         </button>
       </div>
@@ -41,7 +89,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
       
       <!-- Калькулятор -->
-      <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
         
         <div class="space-y-4">
@@ -58,13 +106,13 @@
         </div>
         
         <button onclick="calculate()"
-                class="mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
+                class="neon-btn mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
           Рассчитать
         </button>
       </div>
 
       <!-- Сегодня -->
-      <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
         <div class="space-y-3">
           <div>
@@ -75,11 +123,22 @@
             <div class="text-sm text-zinc-400">Чистая прибыль</div>
             <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
           </div>
+          
+          <!-- Прогресс-бар прибыли -->
+          <div class="pt-3">
+            <div class="flex justify-between text-xs text-zinc-400 mb-1">
+              <span>Прибыль за день</span>
+              <span id="progress-text">0%</span>
+            </div>
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Общая статистика -->
-      <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
         <div class="space-y-3">
           <div>
@@ -94,22 +153,34 @@
       </div>
 
       <!-- История -->
-      <div class="bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <h2 class="text-emerald-400 font-semibold mb-4">История</h2>
-        <div id="history" class="space-y-2 max-h-[420px] overflow-y-auto pr-1"></div>
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur flex flex-col">
+        <h2 class="text-emerald-400 font-semibold mb-3">История</h2>
+        
+        <!-- Поиск и сортировка -->
+        <div class="flex gap-2 mb-3">
+          <input id="search-input" type="text" placeholder="Поиск по сумме..." 
+                 oninput="renderHistory()"
+                 class="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-sm text-white">
+        </div>
+        <div class="flex gap-2 mb-3">
+          <button onclick="setSort('date')" class="flex-1 text-xs py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700">По дате</button>
+          <button onclick="setSort('profit')" class="flex-1 text-xs py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700">По прибыли</button>
+        </div>
+
+        <div id="history" class="space-y-2 max-h-[340px] overflow-y-auto pr-1 flex-1"></div>
       </div>
     </div>
 
     <!-- Кнопка Начать работу -->
     <div class="mt-8">
       <button onclick="startWork()"
-              class="w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
+              class="neon-btn w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
         Начать работу
       </button>
     </div>
 
     <!-- График -->
-    <div class="mt-8 bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+    <div class="mt-8 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
       <h2 class="text-emerald-400 font-semibold mb-4">График</h2>
       <div style="height: 320px; max-width: 520px; margin: 0 auto;">
         <canvas id="chart"></canvas>
@@ -120,9 +191,10 @@
 <script>
 let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let chartInstance = null;
+let currentSort = 'date'; // date | profit
 const todayStr = new Date().toLocaleDateString('ru-RU');
 
-// Миграция старых данных
+// ===== Миграция старых данных =====
 records = records.map(r => {
   if (r.sentByMe === undefined && r.percent != null && r.amount != null) {
     const oldEarned = r.earned || (r.amount * r.percent / 100);
@@ -139,6 +211,36 @@ records = records.map(r => {
 });
 localStorage.setItem('usdt_records', JSON.stringify(records));
 
+// ===== Анимация цифр =====
+function animateValue(el, start, end, duration = 700) {
+  if (!el) return;
+  const range = end - start;
+  if (range === 0) {
+    el.textContent = end.toFixed(2);
+    return;
+  }
+  let startTime = null;
+  function step(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = start + range * ease;
+    el.textContent = current.toFixed(2);
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// ===== Конфетти =====
+function fireConfetti() {
+  confetti({
+    particleCount: 120,
+    spread: 70,
+    origin: { y: 0.65 },
+    colors: ['#10b981', '#34d399', '#fbbf24', '#ffffff']
+  });
+}
+
 function calculate() {
   const amount = parseFloat(document.getElementById('amount').value);
   const sentByMe = parseFloat(document.getElementById('sentByMe').value);
@@ -147,7 +249,6 @@ function calculate() {
     alert('Введите обе суммы');
     return;
   }
-
   if (sentByMe > amount) {
     alert('Сумма, которую ты отправил, не может быть больше суммы, которую тебе прислали');
     return;
@@ -157,16 +258,20 @@ function calculate() {
   const percent = amount > 0 ? +(profit / amount * 100).toFixed(2) : 0;
   const date = new Date().toLocaleString('ru-RU');
 
-  records.unshift({
-    date,
-    amount,
-    sentByMe,
-    profit,
-    percent
-  });
-
+  records.unshift({ date, amount, sentByMe, profit, percent });
   localStorage.setItem('usdt_records', JSON.stringify(records));
+
+  // Конфетти при большой прибыли
+  if (profit >= 500) {
+    fireConfetti();
+  }
+
   renderAll();
+}
+
+function setSort(type) {
+  currentSort = type;
+  renderHistory();
 }
 
 function renderAll() {
@@ -183,16 +288,47 @@ function renderToday() {
     totalAmount += r.amount || 0;
     totalProfit += r.profit || 0;
   });
-  document.getElementById('today-total-sent').textContent = totalAmount.toFixed(2);
-  document.getElementById('today-earned').textContent = totalProfit.toFixed(2);
+
+  const elAmount = document.getElementById('today-total-sent');
+  const elProfit = document.getElementById('today-earned');
+  const oldAmount = parseFloat(elAmount.textContent) || 0;
+  const oldProfit = parseFloat(elProfit.textContent) || 0;
+
+  animateValue(elAmount, oldAmount, totalAmount);
+  animateValue(elProfit, oldProfit, totalProfit);
+
+  // Прогресс-бар (относительно 3000 прибыли за день как 100%)
+  const maxTarget = 3000;
+  const percent = Math.min((totalProfit / maxTarget) * 100, 100);
+  document.getElementById('progress-fill').style.width = percent + '%';
+  document.getElementById('progress-text').textContent = Math.round(percent) + '%';
 }
 
 function renderHistory() {
-  const todayRecords = records.filter(r => r.date.includes(todayStr));
+  let list = records.filter(r => r.date.includes(todayStr));
+
+  // Поиск
+  const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  if (search) {
+    list = list.filter(r => 
+      String(r.amount).includes(search) || 
+      String(r.sentByMe).includes(search) || 
+      String(r.profit).includes(search)
+    );
+  }
+
+  // Сортировка
+  if (currentSort === 'profit') {
+    list = [...list].sort((a, b) => (b.profit || 0) - (a.profit || 0));
+  } else {
+    // по дате (новые сверху — как уже есть)
+    list = [...list];
+  }
+
   let html = '';
-  todayRecords.forEach((r, i) => {
+  list.forEach((r, i) => {
     html += `
-      <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
+      <div class="history-item bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
         <div class="text-sm">
           <div class="text-zinc-400">${r.date}</div>
           <div>
@@ -200,9 +336,10 @@ function renderHistory() {
             <span class="font-semibold text-emerald-400">Прибыль: ${(r.profit || 0).toFixed(2)}</span> (${r.percent || 0}%)
           </div>
         </div>
-        <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100">✕</button>
+        <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100 transition">✕</button>
       </div>`;
   });
+
   document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
 }
 
@@ -212,15 +349,37 @@ function renderPermanentStats() {
     totalAmount += r.amount || 0;
     totalProfit += r.profit || 0;
   });
-  document.getElementById('total-sent').textContent = totalAmount.toFixed(2);
-  document.getElementById('total-earned').textContent = totalProfit.toFixed(2);
+
+  const elAmount = document.getElementById('total-sent');
+  const elProfit = document.getElementById('total-earned');
+  const oldAmount = parseFloat(elAmount.textContent) || 0;
+  const oldProfit = parseFloat(elProfit.textContent) || 0;
+
+  animateValue(elAmount, oldAmount, totalAmount);
+  animateValue(elProfit, oldProfit, totalProfit);
 }
 
 function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
-  const todayRecords = records.filter(r => r.date.includes(todayStr));
-  const realIndex = records.indexOf(todayRecords[index]);
+
+  // Находим реальный индекс с учётом фильтра
+  let list = records.filter(r => r.date.includes(todayStr));
+  const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  if (search) {
+    list = list.filter(r => 
+      String(r.amount).includes(search) || 
+      String(r.sentByMe).includes(search) || 
+      String(r.profit).includes(search)
+    );
+  }
+  if (currentSort === 'profit') {
+    list = [...list].sort((a, b) => (b.profit || 0) - (a.profit || 0));
+  }
+
+  const item = list[index];
+  const realIndex = records.indexOf(item);
   if (realIndex === -1) return;
+
   records.splice(realIndex, 1);
   localStorage.setItem('usdt_records', JSON.stringify(records));
   renderAll();
@@ -272,7 +431,7 @@ function renderDoughnut() {
 }
 
 function startWork() {
-  alert('Рабочий день начат! Удачи!');
+  alert('Рабочий день начат! Удачи! 🐱');
 }
 
 function resetPermanentStats() {
