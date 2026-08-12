@@ -12,41 +12,23 @@
       background: linear-gradient(135deg, #052e16 0%, #000000 100%);
       min-height: 100vh;
     }
-
-    /* Неоновое свечение */
-    .neon-card {
-      transition: all 0.3s ease;
-    }
+    .neon-card { transition: all 0.3s ease; }
     .neon-card:hover {
       box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 40px rgba(16, 185, 129, 0.15);
       border-color: #10b981;
     }
-    .neon-btn {
-      transition: all 0.25s ease;
-    }
+    .neon-btn { transition: all 0.25s ease; }
     .neon-btn:hover {
       box-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
       transform: translateY(-1px);
     }
-
-    /* Анимация появления записи */
     @keyframes slideUpFade {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .history-item {
-      animation: slideUpFade 0.4s ease forwards;
-    }
-
-    /* Прогресс-бар */
+    .history-item { animation: slideUpFade 0.4s ease forwards; }
     .progress-bar {
-      height: 8px;
+      height: 10px;
       border-radius: 9999px;
       background: #1f2937;
       overflow: hidden;
@@ -57,10 +39,43 @@
       background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
       transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
+    /* Цвета прибыли */
+    .profit-low { border-left: 4px solid #4ade80; }
+    .profit-mid { border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.08); }
+    .profit-high { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.15); box-shadow: 0 0 12px rgba(22, 163, 74, 0.25); }
+    .profit-mega { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.12); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+
+    /* Экран пароля */
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #052e16 0%, #000000 100%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body class="text-zinc-200">
-  <div class="max-w-[1300px] mx-auto p-6">
+
+  <!-- Экран пароля -->
+  <div id="lock-screen">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center">
+      <div class="text-5xl mb-4">🐱</div>
+      <h2 class="text-2xl font-bold text-emerald-400 mb-2" id="lock-title">Введите PIN</h2>
+      <p class="text-zinc-400 text-sm mb-6" id="lock-subtitle">Для доступа к дашборду</p>
+      <input id="pin-input" type="password" maxlength="6" placeholder="••••"
+             class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-center text-2xl tracking-widest text-white mb-4"
+             onkeydown="if(event.key==='Enter') checkPin()">
+      <button onclick="checkPin()" class="neon-btn w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-3 rounded-2xl">
+        Войти
+      </button>
+      <p id="pin-error" class="text-red-400 text-sm mt-3 hidden">Неверный PIN</p>
+    </div>
+  </div>
+
+  <div id="app" class="max-w-[1400px] mx-auto p-6 hidden">
     
     <!-- Заголовок -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -82,16 +97,18 @@
         <button onclick="exportToCSV()" class="neon-btn px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
           📥 Экспорт
         </button>
+        <button onclick="changePin()" class="neon-btn px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
+          🔒 Сменить PIN
+        </button>
       </div>
     </div>
 
     <!-- Карточки -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
       
       <!-- Калькулятор -->
       <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
-        
         <div class="space-y-4">
           <div>
             <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
@@ -104,7 +121,6 @@
                    class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
           </div>
         </div>
-        
         <button onclick="calculate()"
                 class="neon-btn mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
           Рассчитать
@@ -123,17 +139,30 @@
             <div class="text-sm text-zinc-400">Чистая прибыль</div>
             <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
           </div>
-          
-          <!-- Прогресс-бар прибыли -->
-          <div class="pt-3">
-            <div class="flex justify-between text-xs text-zinc-400 mb-1">
-              <span>Прибыль за день</span>
-              <span id="progress-text">0%</span>
-            </div>
+        </div>
+      </div>
+
+      <!-- Цель на день -->
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+        <h2 class="text-emerald-400 font-semibold mb-4">Цель на день</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="text-sm text-zinc-400">Твоя цель (USDT)</label>
+            <input id="daily-goal" type="number" step="100" value="2000"
+                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-2 text-white"
+                   onchange="saveGoal()">
+          </div>
+          <div>
+            <div class="text-sm text-zinc-400 mb-1">Прогресс</div>
             <div class="progress-bar">
-              <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+              <div id="goal-progress" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-zinc-400 mt-1">
+              <span id="goal-current">0</span>
+              <span id="goal-percent">0%</span>
             </div>
           </div>
+          <div id="goal-status" class="text-sm text-zinc-400"></div>
         </div>
       </div>
 
@@ -149,6 +178,11 @@
             <div class="text-sm text-zinc-400">Чистая прибыль</div>
             <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
           </div>
+          <div class="pt-2 border-t border-zinc-800">
+            <div class="text-sm text-zinc-400">Рекорд дня</div>
+            <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
+            <div id="record-date" class="text-xs text-zinc-500"></div>
+          </div>
         </div>
       </div>
 
@@ -156,9 +190,8 @@
       <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur flex flex-col">
         <h2 class="text-emerald-400 font-semibold mb-3">История</h2>
         
-        <!-- Поиск и сортировка -->
         <div class="flex gap-2 mb-3">
-          <input id="search-input" type="text" placeholder="Поиск по сумме..." 
+          <input id="search-input" type="text" placeholder="Поиск..." 
                  oninput="renderHistory()"
                  class="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-sm text-white">
         </div>
@@ -171,7 +204,7 @@
       </div>
     </div>
 
-    <!-- Кнопка Начать работу -->
+    <!-- Кнопка -->
     <div class="mt-8">
       <button onclick="startWork()"
               class="neon-btn w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-4 rounded-2xl text-lg shadow-lg shadow-emerald-500/30">
@@ -191,10 +224,103 @@
 <script>
 let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let chartInstance = null;
-let currentSort = 'date'; // date | profit
+let currentSort = 'date';
 const todayStr = new Date().toLocaleDateString('ru-RU');
 
-// ===== Миграция старых данных =====
+// ===== ЗВУКИ =====
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type = 'click') {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === 'click') {
+    osc.frequency.value = 800;
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+  } else if (type === 'success') {
+    osc.frequency.value = 1200;
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+  } else if (type === 'record') {
+    // Двойной звук рекорда
+    [0, 0.15].forEach((delay, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.frequency.value = 900 + i * 300;
+      g.gain.setValueAtTime(0.2, audioCtx.currentTime + delay);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.25);
+      o.start(audioCtx.currentTime + delay);
+      o.stop(audioCtx.currentTime + delay + 0.25);
+    });
+  }
+}
+
+// ===== ПАРОЛЬ =====
+function getPin() {
+  return localStorage.getItem('dashboard_pin') || null;
+}
+
+function checkPin() {
+  const input = document.getElementById('pin-input').value;
+  const saved = getPin();
+
+  if (!saved) {
+    // Первый запуск — устанавливаем PIN
+    if (input.length < 4) {
+      document.getElementById('pin-error').textContent = 'Минимум 4 цифры';
+      document.getElementById('pin-error').classList.remove('hidden');
+      return;
+    }
+    localStorage.setItem('dashboard_pin', input);
+    unlock();
+    return;
+  }
+
+  if (input === saved) {
+    unlock();
+  } else {
+    document.getElementById('pin-error').textContent = 'Неверный PIN';
+    document.getElementById('pin-error').classList.remove('hidden');
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+function unlock() {
+  document.getElementById('lock-screen').style.display = 'none';
+  document.getElementById('app').classList.remove('hidden');
+  renderAll();
+}
+
+function changePin() {
+  const newPin = prompt('Введите новый PIN (минимум 4 цифры):');
+  if (newPin && newPin.length >= 4) {
+    localStorage.setItem('dashboard_pin', newPin);
+    alert('PIN успешно изменён');
+  } else if (newPin !== null) {
+    alert('PIN должен быть минимум 4 символа');
+  }
+}
+
+// Проверка при загрузке
+window.onload = () => {
+  const pin = getPin();
+  if (!pin) {
+    document.getElementById('lock-title').textContent = 'Создайте PIN';
+    document.getElementById('lock-subtitle').textContent = 'Придумайте код для защиты (мин. 4 цифры)';
+  }
+  document.getElementById('pin-input').focus();
+};
+
+// ===== Миграция =====
 records = records.map(r => {
   if (r.sentByMe === undefined && r.percent != null && r.amount != null) {
     const oldEarned = r.earned || (r.amount * r.percent / 100);
@@ -211,11 +337,45 @@ records = records.map(r => {
 });
 localStorage.setItem('usdt_records', JSON.stringify(records));
 
+// ===== Цель =====
+function saveGoal() {
+  const goal = parseFloat(document.getElementById('daily-goal').value) || 2000;
+  localStorage.setItem('daily_goal', goal);
+  renderToday();
+}
+
+function getGoal() {
+  return parseFloat(localStorage.getItem('daily_goal')) || 2000;
+}
+
+// ===== Рекорд =====
+function getRecord() {
+  return {
+    profit: parseFloat(localStorage.getItem('record_profit')) || 0,
+    date: localStorage.getItem('record_date') || ''
+  };
+}
+
+function checkRecord(todayProfit) {
+  const record = getRecord();
+  if (todayProfit > record.profit) {
+    localStorage.setItem('record_profit', todayProfit);
+    localStorage.setItem('record_date', todayStr);
+    playSound('record');
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#fbbf24', '#10b981', '#ffffff'] });
+    setTimeout(() => {
+      alert(`🏆 НОВЫЙ РЕКОРД ДНЯ!\n\nПрибыль: ${todayProfit.toFixed(2)} USDT\nДата: ${todayStr}`);
+    }, 300);
+    return true;
+  }
+  return false;
+}
+
 // ===== Анимация цифр =====
 function animateValue(el, start, end, duration = 700) {
   if (!el) return;
   const range = end - start;
-  if (range === 0) {
+  if (Math.abs(range) < 0.01) {
     el.textContent = end.toFixed(2);
     return;
   }
@@ -224,21 +384,10 @@ function animateValue(el, start, end, duration = 700) {
     if (!startTime) startTime = timestamp;
     const progress = Math.min((timestamp - startTime) / duration, 1);
     const ease = 1 - Math.pow(1 - progress, 3);
-    const current = start + range * ease;
-    el.textContent = current.toFixed(2);
+    el.textContent = (start + range * ease).toFixed(2);
     if (progress < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
-}
-
-// ===== Конфетти =====
-function fireConfetti() {
-  confetti({
-    particleCount: 120,
-    spread: 70,
-    origin: { y: 0.65 },
-    colors: ['#10b981', '#34d399', '#fbbf24', '#ffffff']
-  });
 }
 
 function calculate() {
@@ -261,10 +410,16 @@ function calculate() {
   records.unshift({ date, amount, sentByMe, profit, percent });
   localStorage.setItem('usdt_records', JSON.stringify(records));
 
-  // Конфетти при большой прибыли
+  playSound(profit >= 500 ? 'success' : 'click');
   if (profit >= 500) {
-    fireConfetti();
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 }, colors: ['#10b981', '#34d399', '#fbbf24'] });
   }
+
+  // Проверяем рекорд после добавления
+  const todayProfit = records
+    .filter(r => r.date.includes(todayStr))
+    .reduce((sum, r) => sum + (r.profit || 0), 0);
+  checkRecord(todayProfit);
 
   renderAll();
 }
@@ -279,6 +434,7 @@ function renderAll() {
   renderHistory();
   renderPermanentStats();
   renderDoughnut();
+  updateRecordDisplay();
 }
 
 function renderToday() {
@@ -291,23 +447,35 @@ function renderToday() {
 
   const elAmount = document.getElementById('today-total-sent');
   const elProfit = document.getElementById('today-earned');
-  const oldAmount = parseFloat(elAmount.textContent) || 0;
-  const oldProfit = parseFloat(elProfit.textContent) || 0;
+  animateValue(elAmount, parseFloat(elAmount.textContent) || 0, totalAmount);
+  animateValue(elProfit, parseFloat(elProfit.textContent) || 0, totalProfit);
 
-  animateValue(elAmount, oldAmount, totalAmount);
-  animateValue(elProfit, oldProfit, totalProfit);
+  // Цель
+  const goal = getGoal();
+  document.getElementById('daily-goal').value = goal;
+  const percent = Math.min((totalProfit / goal) * 100, 100);
+  document.getElementById('goal-progress').style.width = percent + '%';
+  document.getElementById('goal-current').textContent = totalProfit.toFixed(0);
+  document.getElementById('goal-percent').textContent = Math.round(percent) + '%';
 
-  // Прогресс-бар (относительно 3000 прибыли за день как 100%)
-  const maxTarget = 3000;
-  const percent = Math.min((totalProfit / maxTarget) * 100, 100);
-  document.getElementById('progress-fill').style.width = percent + '%';
-  document.getElementById('progress-text').textContent = Math.round(percent) + '%';
+  const status = document.getElementById('goal-status');
+  if (totalProfit >= goal) {
+    status.innerHTML = '<span class="text-emerald-400 font-semibold">🎯 Цель достигнута!</span>';
+  } else {
+    status.textContent = `Осталось ${(goal - totalProfit).toFixed(0)} USDT`;
+  }
+}
+
+function getProfitClass(profit) {
+  if (profit >= 500) return 'profit-mega';
+  if (profit >= 200) return 'profit-high';
+  if (profit >= 100) return 'profit-mid';
+  return 'profit-low';
 }
 
 function renderHistory() {
   let list = records.filter(r => r.date.includes(todayStr));
 
-  // Поиск
   const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
   if (search) {
     list = list.filter(r => 
@@ -317,18 +485,15 @@ function renderHistory() {
     );
   }
 
-  // Сортировка
   if (currentSort === 'profit') {
     list = [...list].sort((a, b) => (b.profit || 0) - (a.profit || 0));
-  } else {
-    // по дате (новые сверху — как уже есть)
-    list = [...list];
   }
 
   let html = '';
   list.forEach((r, i) => {
+    const cls = getProfitClass(r.profit || 0);
     html += `
-      <div class="history-item bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
+      <div class="history-item ${cls} bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
         <div class="text-sm">
           <div class="text-zinc-400">${r.date}</div>
           <div>
@@ -349,20 +514,21 @@ function renderPermanentStats() {
     totalAmount += r.amount || 0;
     totalProfit += r.profit || 0;
   });
-
   const elAmount = document.getElementById('total-sent');
   const elProfit = document.getElementById('total-earned');
-  const oldAmount = parseFloat(elAmount.textContent) || 0;
-  const oldProfit = parseFloat(elProfit.textContent) || 0;
+  animateValue(elAmount, parseFloat(elAmount.textContent) || 0, totalAmount);
+  animateValue(elProfit, parseFloat(elProfit.textContent) || 0, totalProfit);
+}
 
-  animateValue(elAmount, oldAmount, totalAmount);
-  animateValue(elProfit, oldProfit, totalProfit);
+function updateRecordDisplay() {
+  const record = getRecord();
+  document.getElementById('record-profit').textContent = record.profit.toFixed(2);
+  document.getElementById('record-date').textContent = record.date ? `📅 ${record.date}` : 'Рекорда пока нет';
 }
 
 function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
 
-  // Находим реальный индекс с учётом фильтра
   let list = records.filter(r => r.date.includes(todayStr));
   const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
   if (search) {
@@ -431,6 +597,7 @@ function renderDoughnut() {
 }
 
 function startWork() {
+  playSound('click');
   alert('Рабочий день начат! Удачи! 🐱');
 }
 
@@ -438,6 +605,8 @@ function resetPermanentStats() {
   if (!confirm('Сбросить всю статистику? Это действие нельзя отменить.')) return;
   records = [];
   localStorage.setItem('usdt_records', JSON.stringify(records));
+  localStorage.removeItem('record_profit');
+  localStorage.removeItem('record_date');
   renderAll();
 }
 
@@ -453,8 +622,6 @@ function exportToCSV() {
   link.download = 'usdt_history.csv';
   link.click();
 }
-
-renderAll();
 </script>
 </body>
 </html>
