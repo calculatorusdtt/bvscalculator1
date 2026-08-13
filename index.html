@@ -397,7 +397,7 @@ function getQuoteOfDay() {
 
 function renderQuote() {
   const q = getQuoteOfDay();
-  document.getElementById('quote-text').textContent = «${q.text}»;
+  document.getElementById('quote-text').textContent = '«' + q.text + '»';
   document.getElementById('quote-author').textContent = '— ' + q.author;
 }
 
