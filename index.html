@@ -137,10 +137,28 @@
             <div class="text-sm text-zinc-400">Чистая прибыль</div>
             <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
           </div>
+          <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <div class="text-zinc-400">Сделок</div>
+              <div id="today-deals" class="font-semibold text-white">0</div>
+            </div>
+            <div>
+              <div class="text-zinc-400">Средний %</div>
+              <div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-zinc-800">
+            <div class="text-zinc-400 text-sm">Лучшая сделка</div>
+            <div id="best-deal" class="font-semibold text-amber-400 text-sm">—</div>
+          </div>
+          <div class="pt-2 border-t border-zinc-800">
+            <div class="text-zinc-400 text-sm">Сравнение с вчера</div>
+            <div id="vs-yesterday" class="font-semibold text-sm">—</div>
+          </div>
         </div>
       </div>
 
-      <!-- Цель на день (только ввод) -->
+      <!-- Цель на день -->
       <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
         <h2 class="text-emerald-400 font-semibold mb-4">Цель на день</h2>
         <div class="space-y-3">
@@ -165,6 +183,16 @@
           <div>
             <div class="text-sm text-zinc-400">Чистая прибыль</div>
             <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+          </div>
+          <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <div class="text-zinc-400">Всего сделок</div>
+              <div id="total-deals" class="font-semibold text-white">0</div>
+            </div>
+            <div>
+              <div class="text-zinc-400">Средний %</div>
+              <div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div>
+            </div>
           </div>
           <div class="pt-2 border-t border-zinc-800">
             <div class="text-sm text-zinc-400">Рекорд дня</div>
@@ -192,7 +220,7 @@
       </div>
     </div>
 
-    <!-- ПРОГРЕСС ЦЕЛИ (вместо кнопки Начать работу) -->
+    <!-- ПРОГРЕСС ЦЕЛИ -->
     <div class="mt-8">
       <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
         <div class="flex justify-between items-center mb-2">
@@ -225,6 +253,13 @@ let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let chartInstance = null;
 let currentSort = 'date';
 const todayStr = new Date().toLocaleDateString('ru-RU');
+
+// Вчерашняя дата
+function getYesterdayStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString('ru-RU');
+}
 
 // ===== ЗВУКИ =====
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -346,12 +381,11 @@ function getGoal() {
   return parseFloat(localStorage.getItem('daily_goal')) || 2000;
 }
 
-// ===== Рекорд (исправленный) =====
+// ===== Рекорд =====
 function recalculateRecord() {
-  // Группируем прибыль по дням
   const dailyProfits = {};
   records.forEach(r => {
-    const day = r.date.split(',')[0].trim(); // берём только дату
+    const day = r.date.split(',')[0].trim();
     dailyProfits[day] = (dailyProfits[day] || 0) + (r.profit || 0);
   });
 
@@ -458,18 +492,66 @@ function renderAll() {
 
 function renderToday() {
   const todayRecords = records.filter(r => r.date.includes(todayStr));
-  let totalAmount = 0, totalProfit = 0;
+  let totalAmount = 0, totalProfit = 0, totalPercent = 0;
+  let bestDeal = null;
+
   todayRecords.forEach(r => {
     totalAmount += r.amount || 0;
     totalProfit += r.profit || 0;
+    totalPercent += r.percent || 0;
+    if (!bestDeal || (r.profit || 0) > (bestDeal.profit || 0)) {
+      bestDeal = r;
+    }
   });
+
+  const dealsCount = todayRecords.length;
+  const avgPercent = dealsCount > 0 ? (totalPercent / dealsCount) : 0;
 
   const elAmount = document.getElementById('today-total-sent');
   const elProfit = document.getElementById('today-earned');
   animateValue(elAmount, parseFloat(elAmount.textContent) || 0, totalAmount);
   animateValue(elProfit, parseFloat(elProfit.textContent) || 0, totalProfit);
 
-  // Цель (большая шкала внизу)
+  document.getElementById('today-deals').textContent = dealsCount;
+  document.getElementById('today-avg-percent').textContent = avgPercent.toFixed(1) + '%';
+
+  // Лучшая сделка
+  if (bestDeal) {
+    document.getElementById('best-deal').textContent = 
+      `${bestDeal.profit.toFixed(2)} USDT (${bestDeal.percent}%)`;
+  } else {
+    document.getElementById('best-deal').textContent = '—';
+  }
+
+  // Сравнение с вчера
+  const yesterdayStr = getYesterdayStr();
+  const yesterdayProfit = records
+    .filter(r => r.date.includes(yesterdayStr))
+    .reduce((sum, r) => sum + (r.profit || 0), 0);
+
+  const vsEl = document.getElementById('vs-yesterday');
+  if (yesterdayProfit === 0 && totalProfit === 0) {
+    vsEl.textContent = '—';
+    vsEl.className = 'font-semibold text-sm text-zinc-400';
+  } else if (yesterdayProfit === 0) {
+    vsEl.textContent = 'Первый день';
+    vsEl.className = 'font-semibold text-sm text-emerald-400';
+  } else {
+    const diff = totalProfit - yesterdayProfit;
+    const diffPercent = (diff / yesterdayProfit * 100);
+    if (diff > 0) {
+      vsEl.textContent = `+${diff.toFixed(0)} USDT (${diffPercent.toFixed(0)}%)`;
+      vsEl.className = 'font-semibold text-sm text-emerald-400';
+    } else if (diff < 0) {
+      vsEl.textContent = `${diff.toFixed(0)} USDT (${diffPercent.toFixed(0)}%)`;
+      vsEl.className = 'font-semibold text-sm text-red-400';
+    } else {
+      vsEl.textContent = 'Как вчера';
+      vsEl.className = 'font-semibold text-sm text-zinc-400';
+    }
+  }
+
+  // Цель
   const goal = getGoal();
   document.getElementById('daily-goal').value = goal;
   document.getElementById('goal-target-big').textContent = goal;
@@ -533,19 +615,26 @@ function renderHistory() {
 }
 
 function renderPermanentStats() {
-  let totalAmount = 0, totalProfit = 0;
+  let totalAmount = 0, totalProfit = 0, totalPercent = 0;
   records.forEach(r => {
     totalAmount += r.amount || 0;
     totalProfit += r.profit || 0;
+    totalPercent += r.percent || 0;
   });
+
+  const dealsCount = records.length;
+  const avgPercent = dealsCount > 0 ? (totalPercent / dealsCount) : 0;
+
   const elAmount = document.getElementById('total-sent');
   const elProfit = document.getElementById('total-earned');
   animateValue(elAmount, parseFloat(elAmount.textContent) || 0, totalAmount);
   animateValue(elProfit, parseFloat(elProfit.textContent) || 0, totalProfit);
+
+  document.getElementById('total-deals').textContent = dealsCount;
+  document.getElementById('total-avg-percent').textContent = avgPercent.toFixed(1) + '%';
 }
 
 function updateRecordDisplay() {
-  // Всегда пересчитываем рекорд из актуальных данных
   const record = recalculateRecord();
   document.getElementById('record-profit').textContent = record.profit.toFixed(2);
   document.getElementById('record-date').textContent = record.date ? `📅 ${record.date}` : 'Рекорда пока нет';
@@ -574,7 +663,6 @@ function deleteRecord(index) {
   records.splice(realIndex, 1);
   localStorage.setItem('usdt_records', JSON.stringify(records));
   
-  // После удаления пересчитываем рекорд
   recalculateRecord();
   renderAll();
 }
@@ -592,7 +680,7 @@ function showStatsByDate() {
   if (filtered.length === 0) {
     alert(`За ${selectedDate} нет записей`);
   } else {
-    alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalAmount.toFixed(2)} USDT\nЧистая прибыль: ${totalProfit.toFixed(2)} USDT`);
+    alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalAmount.toFixed(2)} USDT\nЧистая прибыль: ${totalProfit.toFixed(2)} USDT\nСделок: ${filtered.length}`);
   }
 }
 
