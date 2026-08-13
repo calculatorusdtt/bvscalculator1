@@ -15,17 +15,13 @@
     }
     #particles-canvas {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 0;
       pointer-events: none;
     }
-    #app, #lock-screen {
-      position: relative;
-      z-index: 1;
-    }
+    #app, #lock-screen { position: relative; z-index: 1; }
+
     .neon-card { transition: all 0.3s ease; }
     .neon-card:hover {
       box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 40px rgba(16, 185, 129, 0.15);
@@ -41,6 +37,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
     .history-item { animation: slideUpFade 0.4s ease forwards; }
+
     .progress-bar {
       height: 10px;
       border-radius: 9999px;
@@ -53,31 +50,39 @@
       background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
       transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
     }
+
     .profit-low { border-left: 4px solid #4ade80; }
     .profit-mid { border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.08); }
     .profit-high { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.15); box-shadow: 0 0 12px rgba(22, 163, 74, 0.25); }
     .profit-mega { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.12); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
 
-    /* Пульсация кнопки */
     @keyframes pulse-glow {
       0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
       50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
     }
-    .btn-ready {
-      animation: pulse-glow 1.5s infinite;
-    }
+    .btn-ready { animation: pulse-glow 1.5s infinite; }
 
-    /* Анимация котика */
     @keyframes cat-bounce {
       0%, 100% { transform: scale(1) rotate(0deg); }
       25% { transform: scale(1.25) rotate(-8deg); }
       50% { transform: scale(1.15) rotate(8deg); }
       75% { transform: scale(1.25) rotate(-5deg); }
     }
-    .cat-animate {
-      animation: cat-bounce 0.7s ease;
-      display: inline-block;
+    .cat-animate { animation: cat-bounce 0.7s ease; display: inline-block; }
+
+    /* Календарь активности */
+    .cal-day {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      background: #1f2937;
+      transition: all 0.2s;
     }
+    .cal-day:hover { transform: scale(1.3); }
+    .cal-level-1 { background: #064e3b; box-shadow: 0 0 6px rgba(16,185,129,0.3); }
+    .cal-level-2 { background: #059669; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+    .cal-level-3 { background: #10b981; box-shadow: 0 0 10px rgba(16,185,129,0.5); }
+    .cal-level-4 { background: #34d399; box-shadow: 0 0 12px rgba(52,211,153,0.6); }
 
     #lock-screen {
       position: fixed;
@@ -92,13 +97,12 @@
 </head>
 <body class="text-zinc-200">
 
-  <!-- Частицы -->
   <canvas id="particles-canvas"></canvas>
 
   <!-- Экран пароля -->
   <div id="lock-screen">
     <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center">
-      <div class="text-5xl mb-4" id="lock-cat">🐱</div>
+      <div class="text-5xl mb-4">🐱</div>
       <h2 class="text-2xl font-bold text-emerald-400 mb-2" id="lock-title">Введите PIN</h2>
       <p class="text-zinc-400 text-sm mb-6" id="lock-subtitle">Для доступа к дашборду</p>
       <input id="pin-input" type="password" maxlength="6" placeholder="••••"
@@ -111,7 +115,7 @@
     </div>
   </div>
 
-  <div id="app" class="max-w-[1500px] mx-auto p-6 hidden">
+  <div id="app" class="max-w-[1600px] mx-auto p-6 hidden">
     
     <!-- Заголовок -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -142,151 +146,169 @@
       </div>
     </div>
 
-    <!-- Карточки -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+    <!-- Основной контент: Цитата слева + карточки -->
+    <div class="flex flex-col xl:flex-row gap-4">
       
-      <!-- Калькулятор -->
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
-            <input id="amount" type="number" step="0.01" oninput="checkButtonReady()"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
+      <!-- ЦИТАТА ДНЯ (слева) -->
+      <div class="xl:w-64 flex-shrink-0">
+        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur h-full">
+          <div class="text-emerald-400 font-semibold mb-4 flex items-center gap-2">
+            <span>💬</span> Цитата дня
           </div>
-          <div>
-            <label class="text-sm text-zinc-400">Сумма, которую я отправил человеку</label>
-            <input id="sentByMe" type="number" step="0.01" oninput="checkButtonReady()"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
+          <div id="quote-text" class="text-zinc-200 text-sm leading-relaxed italic mb-4">
+            Загрузка...
           </div>
-        </div>
-        <button id="calc-btn" onclick="calculate()"
-                class="neon-btn mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
-          Рассчитать
-        </button>
-      </div>
-
-      <!-- Сегодня -->
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
-        <div class="space-y-3">
-          <div>
-            <div class="text-sm text-zinc-400">Общая сумма</div>
-            <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
-          </div>
-          <div>
-            <div class="text-sm text-zinc-400">Чистая прибыль</div>
-            <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <div class="text-zinc-400">Сделок</div>
-              <div id="today-deals" class="font-semibold text-white">0</div>
-            </div>
-            <div>
-              <div class="text-zinc-400">Средний %</div>
-              <div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div>
-            </div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800">
-            <div class="text-zinc-400 text-sm">Лучшая сделка</div>
-            <div id="best-deal" class="font-semibold text-amber-400 text-sm">—</div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800">
-            <div class="text-zinc-400 text-sm">Сравнение с вчера</div>
-            <div id="vs-yesterday" class="font-semibold text-sm">—</div>
+          <div id="quote-author" class="text-zinc-500 text-xs text-right">
+            —
           </div>
         </div>
       </div>
 
-      <!-- Цели -->
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <h2 class="text-emerald-400 font-semibold mb-4">Цели</h2>
-        <div class="space-y-4">
-          <div>
-            <label class="text-xs text-zinc-400">День</label>
-            <input id="goal-day" type="number" step="100" value="2000" onchange="saveGoals()"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-            <div class="progress-bar mt-1">
-              <div id="progress-day" class="progress-fill" style="width:0%"></div>
-            </div>
-            <div class="text-xs text-zinc-500 mt-0.5" id="status-day">0 / 2000</div>
-          </div>
-          <div>
-            <label class="text-xs text-zinc-400">Неделя</label>
-            <input id="goal-week" type="number" step="500" value="10000" onchange="saveGoals()"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-            <div class="progress-bar mt-1">
-              <div id="progress-week" class="progress-fill" style="width:0%"></div>
-            </div>
-            <div class="text-xs text-zinc-500 mt-0.5" id="status-week">0 / 10000</div>
-          </div>
-          <div>
-            <label class="text-xs text-zinc-400">Месяц</label>
-            <input id="goal-month" type="number" step="1000" value="40000" onchange="saveGoals()"
-                   class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-            <div class="progress-bar mt-1">
-              <div id="progress-month" class="progress-fill" style="width:0%"></div>
-            </div>
-            <div class="text-xs text-zinc-500 mt-0.5" id="status-month">0 / 40000</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Общая статистика + Топ-3 -->
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
-        <div class="space-y-3">
-          <div>
-            <div class="text-sm text-zinc-400">Общая сумма</div>
-            <div id="total-sent" class="text-3xl font-bold">0.00</div>
-          </div>
-          <div>
-            <div class="text-sm text-zinc-400">Чистая прибыль</div>
-            <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <div class="text-zinc-400">Всего сделок</div>
-              <div id="total-deals" class="font-semibold text-white">0</div>
-            </div>
-            <div>
-              <div class="text-zinc-400">Средний %</div>
-              <div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div>
-            </div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800">
-            <div class="text-sm text-zinc-400">Рекорд дня</div>
-            <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
-            <div id="record-date" class="text-xs text-zinc-500"></div>
-          </div>
-          <div class="pt-2 border-t border-zinc-800">
-            <div class="text-sm text-zinc-400 mb-1">🏆 Топ-3 дня</div>
-            <div id="top3-days" class="text-xs space-y-1 text-zinc-300"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- История -->
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur flex flex-col">
-        <h2 class="text-emerald-400 font-semibold mb-3">История</h2>
+      <!-- Карточки -->
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         
-        <div class="flex gap-2 mb-3">
-          <input id="search-input" type="text" placeholder="Поиск..." 
-                 oninput="renderHistory()"
-                 class="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-sm text-white">
-        </div>
-        <div class="flex gap-2 mb-3">
-          <button onclick="setSort('date')" class="flex-1 text-xs py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700">По дате</button>
-          <button onclick="setSort('profit')" class="flex-1 text-xs py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700">По прибыли</button>
+        <!-- Калькулятор -->
+        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+          <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
+              <input id="amount" type="number" step="0.01" oninput="checkButtonReady()"
+                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
+            </div>
+            <div>
+              <label class="text-sm text-zinc-400">Сумма, которую я отправил человеку</label>
+              <input id="sentByMe" type="number" step="0.01" oninput="checkButtonReady()"
+                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
+            </div>
+          </div>
+          <button id="calc-btn" onclick="calculate()"
+                  class="neon-btn mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
+            Рассчитать
+          </button>
         </div>
 
-        <div id="history" class="space-y-2 max-h-[380px] overflow-y-auto pr-1 flex-1"></div>
+        <!-- Сегодня -->
+        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+          <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
+          <div class="space-y-3">
+            <div>
+              <div class="text-sm text-zinc-400">Общая сумма</div>
+              <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
+            </div>
+            <div>
+              <div class="text-sm text-zinc-400">Чистая прибыль</div>
+              <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <div class="text-zinc-400">Сделок</div>
+                <div id="today-deals" class="font-semibold text-white">0</div>
+              </div>
+              <div>
+                <div class="text-zinc-400">Средний %</div>
+                <div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800">
+              <div class="text-zinc-400 text-sm">Лучшая сделка</div>
+              <div id="best-deal" class="font-semibold text-amber-400 text-sm">—</div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800">
+              <div class="text-zinc-400 text-sm">Сравнение с вчера</div>
+              <div id="vs-yesterday" class="font-semibold text-sm">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Цели -->
+        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+          <h2 class="text-emerald-400 font-semibold mb-4">Цели</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs text-zinc-400">День</label>
+              <input id="goal-day" type="number" step="100" value="2000" onchange="saveGoals()"
+                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
+              <div class="progress-bar mt-1">
+                <div id="progress-day" class="progress-fill" style="width:0%"></div>
+              </div>
+              <div class="text-xs text-zinc-500 mt-0.5" id="status-day">0 / 2000</div>
+            </div>
+            <div>
+              <label class="text-xs text-zinc-400">Неделя</label>
+              <input id="goal-week" type="number" step="500" value="10000" onchange="saveGoals()"
+                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
+              <div class="progress-bar mt-1">
+                <div id="progress-week" class="progress-fill" style="width:0%"></div>
+              </div>
+              <div class="text-xs text-zinc-500 mt-0.5" id="status-week">0 / 10000</div>
+            </div>
+            <div>
+              <label class="text-xs text-zinc-400">Месяц</label>
+              <input id="goal-month" type="number" step="1000" value="40000" onchange="saveGoals()"
+                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
+              <div class="progress-bar mt-1">
+                <div id="progress-month" class="progress-fill" style="width:0%"></div>
+              </div>
+              <div class="text-xs text-zinc-500 mt-0.5" id="status-month">0 / 40000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Общая статистика + Топ-3 -->
+        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+          <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
+          <div class="space-y-3">
+            <div>
+              <div class="text-sm text-zinc-400">Общая сумма</div>
+              <div id="total-sent" class="text-3xl font-bold">0.00</div>
+            </div>
+            <div>
+              <div class="text-sm text-zinc-400">Чистая прибыль</div>
+              <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <div class="text-zinc-400">Всего сделок</div>
+                <div id="total-deals" class="font-semibold text-white">0</div>
+              </div>
+              <div>
+                <div class="text-zinc-400">Средний %</div>
+                <div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800">
+              <div class="text-sm text-zinc-400">Рекорд дня</div>
+              <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
+              <div id="record-date" class="text-xs text-zinc-500"></div>
+            </div>
+            <div class="pt-2 border-t border-zinc-800">
+              <div class="text-sm text-zinc-400 mb-1">🏆 Топ-3 дня</div>
+              <div id="top3-days" class="text-xs space-y-1 text-zinc-300"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ПРОГРЕСС ЦЕЛИ ДНЯ (большая) -->
-    <div class="mt-8">
+    <!-- История (на всю ширину) -->
+    <div class="mt-4">
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <h2 class="text-emerald-400 font-semibold">История за сегодня</h2>
+          <div class="flex gap-2">
+            <input id="search-input" type="text" placeholder="Поиск..." oninput="renderHistory()"
+                   class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-sm text-white w-40">
+            <button onclick="setSort('date')" class="text-xs py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700">По дате</button>
+            <button onclick="setSort('profit')" class="text-xs py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700">По прибыли</button>
+          </div>
+        </div>
+        <div id="history" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[280px] overflow-y-auto pr-1"></div>
+      </div>
+    </div>
+
+    <!-- ПРОГРЕСС ЦЕЛИ ДНЯ -->
+    <div class="mt-6">
       <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
         <div class="flex justify-between items-center mb-2">
           <div class="text-black font-bold text-lg">Цель на день</div>
@@ -304,12 +326,23 @@
       </div>
     </div>
 
-    <!-- График -->
-    <div class="mt-8 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <h2 class="text-emerald-400 font-semibold mb-4">График</h2>
-      <div style="height: 320px; max-width: 520px; margin: 0 auto;">
-        <canvas id="chart"></canvas>
+    <!-- КАЛЕНДАРЬ АКТИВНОСТИ (вместо графика) -->
+    <div class="mt-6 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+        <h2 class="text-emerald-400 font-semibold">Календарь активности</h2>
+        <div class="flex items-center gap-3 text-xs text-zinc-400">
+          <span>Меньше</span>
+          <div class="flex gap-1">
+            <div class="cal-day"></div>
+            <div class="cal-day cal-level-1"></div>
+            <div class="cal-day cal-level-2"></div>
+            <div class="cal-day cal-level-3"></div>
+            <div class="cal-day cal-level-4"></div>
+          </div>
+          <span>Больше</span>
+        </div>
       </div>
+      <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
     </div>
   </div>
 
@@ -318,6 +351,55 @@ let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
 let chartInstance = null;
 let currentSort = 'date';
 const todayStr = new Date().toLocaleDateString('ru-RU');
+
+// ===== ЦИТАТЫ =====
+const quotes = [
+  { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
+  { text: "Каждая сделка — это шаг. Главное — не останавливаться.", author: "Трейдерская мудрость" },
+  { text: "Богатство начинается не с большой суммы, а с правильного решения.", author: "—" },
+  { text: "Пока другие спят — ты считаешь. Пока другие ждут — ты действуешь.", author: "—" },
+  { text: "Процент — это не просто число. Это твоя свобода.", author: "—" },
+  { text: "Лучшая инвестиция — это вложенное сегодня усилие.", author: "—" },
+  { text: "Не гонись за идеальной сделкой. Гонись за количеством правильных действий.", author: "—" },
+  { text: "Дисциплина приносит больше денег, чем талант.", author: "—" },
+  { text: "Сегодняшний профит — это завтрашняя уверенность.", author: "—" },
+  { text: "Рынок не ждёт. Либо ты в игре, либо наблюдаешь со стороны.", author: "—" },
+  { text: "Маленькая прибыль каждый день сильнее большой удачи раз в год.", author: "—" },
+  { text: "Ты не зарабатываешь деньги. Ты зарабатываешь время своей жизни.", author: "—" },
+  { text: "Страх потери останавливает сильнее, чем жажда прибыли.", author: "—" },
+  { text: "Успех в цифрах начинается с успеха в привычках.", author: "—" },
+  { text: "Каждый отказ от сделки тоже решение. Иногда самое прибыльное.", author: "—" },
+  { text: "Деньги приходят к тем, кто относится к ним серьёзно.", author: "—" },
+  { text: "Не считай, сколько ты потерял. Считай, чему ты научился.", author: "—" },
+  { text: "Фокус на процессе даёт результат. Фокус на результате даёт стресс.", author: "—" },
+  { text: "Одна хорошая система лучше ста талантливых попыток.", author: "—" },
+  { text: "Твоя статистика — это зеркало твоей дисциплины.", author: "—" },
+  { text: "Большие деньги любят тишину и порядок.", author: "—" },
+  { text: "Сегодня ты строишь привычку, которая завтра построит капитал.", author: "—" },
+  { text: "Не сравнивай себя с другими. Сравнивай себя с собой вчерашним.", author: "—" },
+  { text: "Прибыль любит тех, кто считает её каждый день.", author: "—" },
+  { text: "Работа с цифрами — это разговор с реальностью.", author: "—" },
+  { text: "Лучший день для начала был вчера. Следующий лучший — сегодня.", author: "—" },
+  { text: "Чем точнее ты считаешь, тем спокойнее спишь.", author: "—" },
+  { text: "Деньги — это энергия. Куда ты её направишь — туда она и пойдёт.", author: "—" },
+  { text: "Сила не в одной большой сделке. Сила в серии правильных.", author: "—" },
+  { text: "Ты не в конкуренции с рынком. Ты в конкуренции со своей ленью.", author: "—" }
+];
+
+function getQuoteOfDay() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now - start;
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const index = dayOfYear % quotes.length;
+  return quotes[index];
+}
+
+function renderQuote() {
+  const q = getQuoteOfDay();
+  document.getElementById('quote-text').textContent = «${q.text}»;
+  document.getElementById('quote-author').textContent = '— ' + q.author;
+}
 
 // ===== ЧАСТИЦЫ =====
 const canvas = document.getElementById('particles-canvas');
@@ -333,14 +415,14 @@ resizeCanvas();
 
 function createParticles() {
   particles = [];
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 55; i++) {
     particles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      radius: Math.random() * 2 + 0.5,
-      speedY: Math.random() * 0.4 + 0.1,
-      speedX: (Math.random() - 0.5) * 0.3,
-      opacity: Math.random() * 0.5 + 0.1
+      radius: Math.random() * 2 + 0.4,
+      speedY: Math.random() * 0.35 + 0.08,
+      speedX: (Math.random() - 0.5) * 0.25,
+      opacity: Math.random() * 0.45 + 0.1
     });
   }
 }
@@ -355,10 +437,7 @@ function animateParticles() {
     ctx.fill();
     p.y -= p.speedY;
     p.x += p.speedX;
-    if (p.y < -10) {
-      p.y = canvas.height + 10;
-      p.x = Math.random() * canvas.width;
-    }
+    if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
     if (p.x < -10) p.x = canvas.width + 10;
     if (p.x > canvas.width + 10) p.x = -10;
   });
@@ -422,6 +501,7 @@ function unlock() {
   document.getElementById('lock-screen').style.display = 'none';
   document.getElementById('app').classList.remove('hidden');
   renderAll();
+  renderQuote();
 }
 
 function changePin() {
@@ -500,9 +580,7 @@ function recalculateRecord() {
 
 function getTop3Days() {
   const daily = getDailyProfits();
-  return Object.entries(daily)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+  return Object.entries(daily).sort((a, b) => b[1] - a[1]).slice(0, 3);
 }
 
 function checkRecord(todayProfit) {
@@ -528,7 +606,6 @@ function animateCat() {
   cat.classList.add('cat-animate');
 }
 
-// ===== Кнопка пульсация =====
 function checkButtonReady() {
   const amount = document.getElementById('amount').value;
   const sent = document.getElementById('sentByMe').value;
@@ -537,7 +614,6 @@ function checkButtonReady() {
   else btn.classList.remove('btn-ready');
 }
 
-// ===== Анимация цифр =====
 function animateValue(el, start, end, duration = 700) {
   if (!el) return;
   const range = end - start;
@@ -568,22 +644,18 @@ function getWeekProfit() {
   const monday = new Date(now);
   monday.setDate(now.getDate() - dayOfWeek + 1);
   monday.setHours(0,0,0,0);
-  return records
-    .filter(r => {
-      const parts = r.date.split(',')[0].trim().split('.');
-      if (parts.length < 3) return false;
-      const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-      return d >= monday;
-    })
-    .reduce((s, r) => s + (r.profit || 0), 0);
+  return records.filter(r => {
+    const parts = r.date.split(',')[0].trim().split('.');
+    if (parts.length < 3) return false;
+    const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    return d >= monday;
+  }).reduce((s, r) => s + (r.profit || 0), 0);
 }
 
 function getMonthProfit() {
   const now = new Date();
   const monthStr = `${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
-  return records
-    .filter(r => r.date.includes(monthStr))
-    .reduce((s, r) => s + (r.profit || 0), 0);
+  return records.filter(r => r.date.includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
 }
 
 function calculate() {
@@ -611,19 +683,14 @@ function calculate() {
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 }, colors: ['#10b981', '#34d399', '#fbbf24'] });
   }
 
-  const todayProfit = records
-    .filter(r => r.date.includes(todayStr))
-    .reduce((sum, r) => sum + (r.profit || 0), 0);
-  
+  const todayProfit = records.filter(r => r.date.includes(todayStr)).reduce((sum, r) => sum + (r.profit || 0), 0);
   const goals = getGoals();
   if (todayProfit >= goals.day) animateCat();
   checkRecord(todayProfit);
 
-  // очистка полей
   document.getElementById('amount').value = '';
   document.getElementById('sentByMe').value = '';
   checkButtonReady();
-
   renderAll();
 }
 
@@ -636,9 +703,9 @@ function renderAll() {
   renderToday();
   renderHistory();
   renderPermanentStats();
-  renderDoughnut();
   updateRecordDisplay();
   updateTop3();
+  renderActivityCalendar();
 }
 
 function renderToday() {
@@ -663,7 +730,6 @@ function renderToday() {
   document.getElementById('today-avg-percent').textContent = avgPercent.toFixed(1) + '%';
   document.getElementById('best-deal').textContent = bestDeal ? `${bestDeal.profit.toFixed(2)} USDT (${bestDeal.percent}%)` : '—';
 
-  // Сравнение с вчера
   const yesterdayStr = getYesterdayStr();
   const yesterdayProfit = records.filter(r => r.date.includes(yesterdayStr)).reduce((s, r) => s + (r.profit || 0), 0);
   const vsEl = document.getElementById('vs-yesterday');
@@ -688,7 +754,6 @@ function renderToday() {
     }
   }
 
-  // Цели
   const goals = getGoals();
   document.getElementById('goal-day').value = goals.day;
   document.getElementById('goal-week').value = goals.week;
@@ -697,22 +762,18 @@ function renderToday() {
   const weekProfit = getWeekProfit();
   const monthProfit = getMonthProfit();
 
-  // День
   const pDay = Math.min((totalProfit / goals.day) * 100, 100);
   document.getElementById('progress-day').style.width = pDay + '%';
   document.getElementById('status-day').textContent = `${totalProfit.toFixed(0)} / ${goals.day}`;
-  
-  // Неделя
+
   const pWeek = Math.min((weekProfit / goals.week) * 100, 100);
   document.getElementById('progress-week').style.width = pWeek + '%';
   document.getElementById('status-week').textContent = `${weekProfit.toFixed(0)} / ${goals.week}`;
 
-  // Месяц
   const pMonth = Math.min((monthProfit / goals.month) * 100, 100);
   document.getElementById('progress-month').style.width = pMonth + '%';
   document.getElementById('status-month').textContent = `${monthProfit.toFixed(0)} / ${goals.month}`;
 
-  // Большая шкала дня
   document.getElementById('goal-target-big').textContent = goals.day;
   document.getElementById('goal-progress-big').style.width = pDay + '%';
   document.getElementById('goal-current-big').textContent = totalProfit.toFixed(0);
@@ -793,6 +854,50 @@ function updateTop3() {
   ).join('');
 }
 
+// ===== КАЛЕНДАРЬ АКТИВНОСТИ =====
+function renderActivityCalendar() {
+  const daily = getDailyProfits();
+  const container = document.getElementById('activity-calendar');
+  
+  // Последние 16 недель
+  const weeks = 16;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  // Находим максимальный профит для нормализации
+  const profits = Object.values(daily);
+  const maxProfit = profits.length ? Math.max(...profits, 1) : 1;
+
+  let html = '<div class="flex gap-1">';
+  
+  for (let w = weeks - 1; w >= 0; w--) {
+    html += '<div class="flex flex-col gap-1">';
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (w * 7 + (6 - d)));
+      
+      const dayStr = date.toLocaleDateString('ru-RU');
+      const profit = daily[dayStr] || 0;
+      
+      let level = '';
+      if (profit > 0) {
+        const ratio = profit / maxProfit;
+        if (ratio > 0.75) level = 'cal-level-4';
+        else if (ratio > 0.5) level = 'cal-level-3';
+        else if (ratio > 0.25) level = 'cal-level-2';
+        else level = 'cal-level-1';
+      }
+      
+      const title = profit > 0 ? `${dayStr}: ${profit.toFixed(0)} USDT` : dayStr;
+      html += `<div class="cal-day ${level}" title="${title}"></div>`;
+    }
+    html += '</div>';
+  }
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
   let list = records.filter(r => r.date.includes(todayStr));
@@ -829,32 +934,6 @@ function showStatsByDate() {
   else alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalAmount.toFixed(2)} USDT\nЧистая прибыль: ${totalProfit.toFixed(2)} USDT\nСделок: ${filtered.length}`);
 }
 
-function renderDoughnut() {
-  const ctx = document.getElementById('chart');
-  if (chartInstance) chartInstance.destroy();
-  let totalAmount = 0, totalProfit = 0;
-  records.forEach(r => {
-    totalAmount += r.amount || 0;
-    totalProfit += r.profit || 0;
-  });
-  chartInstance = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Сумма от людей', 'Чистая прибыль'],
-      datasets: [{
-        data: [totalAmount, totalProfit],
-        backgroundColor: ['#10b981', '#f59e0b'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: '#ddd' } } }
-    }
-  });
-}
-
 function resetPermanentStats() {
   if (!confirm('Сбросить всю статистику? Это действие нельзя отменить.')) return;
   records = [];
@@ -877,7 +956,6 @@ function exportToCSV() {
   link.click();
 }
 
-// ===== КРАСИВЫЙ ОТЧЁТ =====
 function exportBeautifulReport() {
   if (records.length === 0) return alert('Нет данных');
 
