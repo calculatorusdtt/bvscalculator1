@@ -65,7 +65,6 @@
           <div id="quote-author" class="text-zinc-500 text-xs text-right">—</div>
         </div>
       </div>
-
       <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Калькулятор</h2>
@@ -76,7 +75,6 @@
           <button onclick="calculate()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
           <p id="save-status" class="text-xs text-zinc-500 mt-2">Облако: ожидание</p>
         </div>
-
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Сегодня</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
@@ -90,7 +88,6 @@
           <div class="mt-2 text-xs text-zinc-400">Лучшая сделка</div>
           <div id="best-deal" class="text-amber-400 text-sm font-semibold">—</div>
         </div>
-
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Цели</h2>
           <label class="text-xs text-zinc-400">День</label>
@@ -106,7 +103,6 @@
           <div class="progress-bar mb-1"><div id="progress-month" class="progress-fill" style="width:0%"></div></div>
           <div id="status-month" class="text-xs text-zinc-500">0 / 0</div>
         </div>
-
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Общая статистика</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
@@ -121,7 +117,6 @@
           <div id="record-profit" class="text-lg font-bold text-amber-400 leading-tight">0.00</div>
           <div id="record-date" class="text-xs text-zinc-500"></div>
         </div>
-
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4 flex flex-col">
           <h2 class="text-emerald-400 font-semibold mb-3">История</h2>
           <div id="history" class="space-y-2 max-h-[430px] overflow-y-auto pr-1 flex-1"></div>
@@ -133,9 +128,7 @@
       <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
         <div class="flex justify-between items-center mb-2">
           <div class="text-black font-bold text-lg">Цель на день</div>
-          <div class="text-black font-bold text-lg">
-            <span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT
-          </div>
+          <div class="text-black font-bold text-lg"><span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT</div>
         </div>
         <div class="progress-bar" style="height:14px;background:rgba(0,0,0,.25)">
           <div id="goal-progress-big" class="progress-fill" style="width:0%"></div>
@@ -178,12 +171,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 let records = [];
 let goals = { day: 2000, week: 10000, month: 40000 };
 let currentUser = null;
 const todayStr = new Date().toLocaleDateString('ru-RU');
-
 const quotes = [
   { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
   { text: "Каждая сделка — это шаг. Главное — не останавливаться.", author: "—" },
@@ -201,7 +192,6 @@ const quotes = [
   { text: "Лучший день для начала был вчера. Следующий лучший — сегодня.", author: "—" },
   { text: "Сила не в одной большой сделке. Сила в серии правильных.", author: "—" }
 ];
-
 function renderQuote() {
   const now = new Date();
   const start = new Date(now.getFullYear(), 0, 0);
@@ -228,7 +218,6 @@ function login() {
   auth.signInWithEmailAndPassword(email, password).catch(err => showError(err.message));
 }
 function logout() { auth.signOut(); }
-
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     currentUser = null;
@@ -242,10 +231,10 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById('user-email').textContent = user.email;
   await loadCloud();
   await migrateLocalIfNeeded(false);
+  await restoreLostBase(true);
   renderQuote();
   renderAll();
 });
-
 function userRef() { return db.collection('users').doc(currentUser.uid); }
 async function loadCloud() {
   setStatus('Загрузка из облака...');
@@ -295,21 +284,29 @@ function normalizeRecord(r) {
   const percent = Number(r.percent != null ? r.percent : (amount ? +(profit / amount * 100).toFixed(2) : 0));
   return { date: r.date || new Date().toLocaleString('ru-RU'), amount, sentByMe, profit, percent };
 }
-async function restoreLostBase() {
-  const already = records.some(r => r.note === 'restore47k');
-  if (already) return alert('Корректировка уже добавлена');
+async function restoreLostBase(auto = false) {
+  records = records.filter(r => r.note !== 'restore47k');
   const currentAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
   const currentProfit = records.reduce((s, r) => s + (r.profit || 0), 0);
   const avgPercent = currentAmount > 0 ? (currentProfit / currentAmount * 100) : 31.6;
   const missingAmount = +(47000 - currentAmount).toFixed(2);
-  if (missingAmount <= 0) return alert('Общая сумма уже не меньше 47000. Корректировка не нужна.');
+  if (missingAmount <= 0) {
+    if (!auto) alert('Общая сумма уже не меньше 47000.');
+    return;
+  }
   const missingProfit = +(missingAmount * avgPercent / 100).toFixed(2);
   const sentByMe = +(missingAmount - missingProfit).toFixed(2);
-  if (!confirm('Добавить восстановление потерянных недель?\n\nСейчас сумма: ' + currentAmount.toFixed(2) + '\nДобавить сумму: ' + missingAmount.toFixed(2) + '\nСредний %: ' + avgPercent.toFixed(2) + '%\nДобавить прибыль: ' + missingProfit.toFixed(2) + '\nИтог сумма: 47000\nИтог прибыль: ' + (currentProfit + missingProfit).toFixed(2) + '\n\nВчерашние записи останутся.')) return;
-  records.push({ date: '20.08.2026, 12:00:00', amount: missingAmount, sentByMe, profit: missingProfit, percent: +avgPercent.toFixed(2), note: 'restore47k' });
-  renderAll();
+  records.push({
+    date: '20.08.2026, 12:00:00',
+    amount: missingAmount,
+    sentByMe,
+    profit: missingProfit,
+    percent: +avgPercent.toFixed(2),
+    note: 'restore47k'
+  });
   await saveCloud();
-  alert('База восстановлена. Вчерашние записи на месте.');
+  renderAll();
+  if (!auto) alert('База восстановлена.\nСумма: 47000\nПрибыль: ' + (currentProfit + missingProfit).toFixed(2));
 }
 async function calculate() {
   const amount = parseFloat(document.getElementById('amount').value);
