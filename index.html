@@ -3,639 +3,337 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USDT Dashboard</title>
+  <title>USDT Dashboard Cloud</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      background: linear-gradient(135deg, #052e16 0%, #000000 100%);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    #particles-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0;
-      pointer-events: none;
-    }
-    #app, #lock-screen { position: relative; z-index: 1; }
-
-    .neon-card { transition: all 0.3s ease; }
-    .neon-card:hover {
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 40px rgba(16, 185, 129, 0.15);
-      border-color: #10b981;
-    }
-    .neon-btn { transition: all 0.25s ease; }
-    .neon-btn:hover {
-      box-shadow: 0 0 18px rgba(16, 185, 129, 0.55);
-      transform: translateY(-1px);
-    }
-    @keyframes slideUpFade {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .history-item { animation: slideUpFade 0.4s ease forwards; }
-
-    .progress-bar {
-      height: 10px;
-      border-radius: 9999px;
-      background: rgba(0,0,0,0.35);
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 9999px;
-      background: linear-gradient(90deg, #10b981, #34d399, #6ee7b7);
-      transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .profit-low { border-left: 4px solid #4ade80; }
-    .profit-mid { border-left: 4px solid #22c55e; background: rgba(34, 197, 94, 0.08); }
-    .profit-high { border-left: 4px solid #16a34a; background: rgba(22, 163, 74, 0.15); box-shadow: 0 0 12px rgba(22, 163, 74, 0.25); }
-    .profit-mega { border-left: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.12); box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
-
-    @keyframes pulse-glow {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-      50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    }
-    .btn-ready { animation: pulse-glow 1.5s infinite; }
-
-    @keyframes cat-bounce {
-      0%, 100% { transform: scale(1) rotate(0deg); }
-      25% { transform: scale(1.25) rotate(-8deg); }
-      50% { transform: scale(1.15) rotate(8deg); }
-      75% { transform: scale(1.25) rotate(-5deg); }
-    }
-    .cat-animate { animation: cat-bounce 0.7s ease; display: inline-block; }
-
-    /* Календарь активности */
-    .cal-day {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      background: #1f2937;
-      transition: all 0.2s;
-    }
-    .cal-day:hover { transform: scale(1.3); }
-    .cal-level-1 { background: #064e3b; box-shadow: 0 0 6px rgba(16,185,129,0.3); }
-    .cal-level-2 { background: #059669; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
-    .cal-level-3 { background: #10b981; box-shadow: 0 0 10px rgba(16,185,129,0.5); }
-    .cal-level-4 { background: #34d399; box-shadow: 0 0 12px rgba(52,211,153,0.6); }
-
-    #lock-screen {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(135deg, #052e16 0%, #000000 100%);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    body { background: linear-gradient(135deg, #052e16 0%, #000 100%); min-height: 100vh; }
+    .neon-card { transition: .3s; }
+    .neon-card:hover { box-shadow: 0 0 20px rgba(16,185,129,.35); border-color: #10b981; }
+    .progress-bar { height: 10px; border-radius: 9999px; background: #1f2937; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg,#10b981,#6ee7b7); transition: width .6s; }
   </style>
 </head>
 <body class="text-zinc-200">
+  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 w-full max-w-md">
+      <div class="text-5xl text-center mb-4">🐱</div>
+      <h1 class="text-2xl font-bold text-emerald-400 text-center mb-2">USDT Cloud</h1>
+      <p class="text-zinc-400 text-sm text-center mb-6">Одни данные с любого устройства</p>
 
-  <canvas id="particles-canvas"></canvas>
+      <input id="email" type="email" placeholder="Email"
+        class="w-full mb-3 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+      <input id="password" type="password" placeholder="Пароль (минимум 6 символов)"
+        class="w-full mb-4 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white"
+        onkeydown="if(event.key==='Enter') login()">
 
-  <!-- Экран пароля -->
-  <div id="lock-screen">
-    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 w-full max-w-sm text-center">
-      <div class="text-5xl mb-4">🐱</div>
-      <h2 class="text-2xl font-bold text-emerald-400 mb-2" id="lock-title">Введите PIN</h2>
-      <p class="text-zinc-400 text-sm mb-6" id="lock-subtitle">Для доступа к дашборду</p>
-      <input id="pin-input" type="password" maxlength="6" placeholder="••••"
-             class="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-center text-2xl tracking-widest text-white mb-4"
-             onkeydown="if(event.key==='Enter') checkPin()">
-      <button onclick="checkPin()" class="neon-btn w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-3 rounded-2xl">
-        Войти
-      </button>
-      <p id="pin-error" class="text-red-400 text-sm mt-3 hidden">Неверный PIN</p>
+      <button onclick="login()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-3 rounded-2xl mb-3">Войти</button>
+      <button onclick="register()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-2xl">Создать аккаунт</button>
+      <p id="auth-error" class="text-red-400 text-sm mt-3 hidden"></p>
+      <p class="text-zinc-500 text-xs mt-4 text-center">Сначала вставь firebaseConfig в код. Потом создай аккаунт один раз и с любого устройства входи в него.</p>
     </div>
   </div>
 
-  <div id="app" class="max-w-[1600px] mx-auto p-6 hidden">
-    
-    <!-- Заголовок -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-      <h1 class="text-3xl font-bold tracking-tight text-emerald-400 flex items-center gap-3">
-        <span class="text-4xl" id="main-cat">🐱</span> USDT DASHBOARD
-      </h1>
-      
-      <div class="flex flex-wrap gap-3 items-end">
-        <div>
-          <label class="text-xs text-zinc-400">Выбрать дату</label>
-          <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-2 text-white text-sm">
-        </div>
-        <button onclick="showStatsByDate()" class="neon-btn bg-emerald-600 hover:bg-emerald-700 px-5 py-2 rounded-2xl text-sm font-semibold">
-          Показать за дату
-        </button>
-        <button onclick="exportBeautifulReport()" class="neon-btn px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-2xl">
-          📊 Красивый отчёт
-        </button>
-        <button onclick="exportToCSV()" class="neon-btn px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
-          📥 CSV
-        </button>
-        <button onclick="resetPermanentStats()" class="neon-btn px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-2xl">
-          Сбросить
-        </button>
-        <button onclick="changePin()" class="neon-btn px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-sm">
-          🔒 PIN
-        </button>
+  <div id="app" class="hidden max-w-[1400px] mx-auto p-6">
+    <div class="flex flex-col md:flex-row justify-between gap-4 mb-6">
+      <h1 class="text-3xl font-bold text-emerald-400">🐱 USDT DASHBOARD <span class="text-sm text-emerald-300">CLOUD</span></h1>
+      <div class="flex flex-wrap gap-2 items-center">
+        <span id="user-email" class="text-xs text-zinc-400"></span>
+        <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-3 py-2 text-sm">
+        <button onclick="showStatsByDate()" class="bg-emerald-600 px-4 py-2 rounded-2xl text-sm">По дате</button>
+        <button onclick="exportToCSV()" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">CSV</button>
+        <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-2xl text-sm">Выйти</button>
       </div>
     </div>
 
-    <!-- Основной контент: Цитата слева + карточки -->
-    <div class="flex flex-col xl:flex-row gap-4">
-      
-      <!-- ЦИТАТА ДНЯ (слева) -->
-      <div class="xl:w-64 flex-shrink-0">
-        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur h-full">
-          <div class="text-emerald-400 font-semibold mb-4 flex items-center gap-2">
-            <span>💬</span> Цитата дня
-          </div>
-          <div id="quote-text" class="text-zinc-200 text-sm leading-relaxed italic mb-4">
-            Загрузка...
-          </div>
-          <div id="quote-author" class="text-zinc-500 text-xs text-right">
-            —
-          </div>
-        </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+        <h2 class="text-emerald-400 font-semibold mb-4">Калькулятор</h2>
+        <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
+        <input id="amount" type="number" step="0.01" class="w-full mt-1 mb-3 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+        <label class="text-sm text-zinc-400">Сумма, которую я отправил человеку</label>
+        <input id="sentByMe" type="number" step="0.01" class="w-full mt-1 mb-4 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
+        <button onclick="calculate()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-3 rounded-2xl">Рассчитать</button>
+        <p id="save-status" class="text-xs text-zinc-500 mt-3">Облако: ожидание</p>
       </div>
 
-      <!-- Карточки -->
-      <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        
-        <!-- Калькулятор -->
-        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-          <h2 class="text-emerald-400 font-semibold mb-5">Калькулятор</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
-              <input id="amount" type="number" step="0.01" oninput="checkButtonReady()"
-                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
-            </div>
-            <div>
-              <label class="text-sm text-zinc-400">Сумма, которую я отправил человеку</label>
-              <input id="sentByMe" type="number" step="0.01" oninput="checkButtonReady()"
-                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg text-white">
-            </div>
-          </div>
-          <button id="calc-btn" onclick="calculate()"
-                  class="neon-btn mt-6 w-full bg-emerald-500 hover:bg-emerald-600 transition text-black font-semibold py-3.5 rounded-2xl text-lg">
-            Рассчитать
-          </button>
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+        <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
+        <div class="text-sm text-zinc-400">Общая сумма</div>
+        <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
+        <div class="text-sm text-zinc-400 mt-3">Чистая прибыль</div>
+        <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+        <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
+          <div><div class="text-zinc-400">Сделок</div><div id="today-deals" class="font-semibold">0</div></div>
+          <div><div class="text-zinc-400">Средний %</div><div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
         </div>
+        <div class="mt-3 text-sm text-zinc-400">Лучшая сделка</div>
+        <div id="best-deal" class="text-amber-400 text-sm">—</div>
+      </div>
 
-        <!-- Сегодня -->
-        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-          <h2 class="text-emerald-400 font-semibold mb-4">Сегодня</h2>
-          <div class="space-y-3">
-            <div>
-              <div class="text-sm text-zinc-400">Общая сумма</div>
-              <div id="today-total-sent" class="text-3xl font-bold">0.00</div>
-            </div>
-            <div>
-              <div class="text-sm text-zinc-400">Чистая прибыль</div>
-              <div id="today-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <div class="text-zinc-400">Сделок</div>
-                <div id="today-deals" class="font-semibold text-white">0</div>
-              </div>
-              <div>
-                <div class="text-zinc-400">Средний %</div>
-                <div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div>
-              </div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800">
-              <div class="text-zinc-400 text-sm">Лучшая сделка</div>
-              <div id="best-deal" class="font-semibold text-amber-400 text-sm">—</div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800">
-              <div class="text-zinc-400 text-sm">Сравнение с вчера</div>
-              <div id="vs-yesterday" class="font-semibold text-sm">—</div>
-            </div>
-          </div>
-        </div>
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+        <h2 class="text-emerald-400 font-semibold mb-4">Цели</h2>
+        <label class="text-xs text-zinc-400">День</label>
+        <input id="goal-day" type="number" onchange="saveCloud()" class="w-full mt-1 mb-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
+        <div class="progress-bar mb-1"><div id="progress-day" class="progress-fill" style="width:0%"></div></div>
+        <div id="status-day" class="text-xs text-zinc-500 mb-3">0 / 0</div>
 
-        <!-- Цели -->
-        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-          <h2 class="text-emerald-400 font-semibold mb-4">Цели</h2>
-          <div class="space-y-4">
-            <div>
-              <label class="text-xs text-zinc-400">День</label>
-              <input id="goal-day" type="number" step="100" value="2000" onchange="saveGoals()"
-                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-              <div class="progress-bar mt-1">
-                <div id="progress-day" class="progress-fill" style="width:0%"></div>
-              </div>
-              <div class="text-xs text-zinc-500 mt-0.5" id="status-day">0 / 2000</div>
-            </div>
-            <div>
-              <label class="text-xs text-zinc-400">Неделя</label>
-              <input id="goal-week" type="number" step="500" value="10000" onchange="saveGoals()"
-                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-              <div class="progress-bar mt-1">
-                <div id="progress-week" class="progress-fill" style="width:0%"></div>
-              </div>
-              <div class="text-xs text-zinc-500 mt-0.5" id="status-week">0 / 10000</div>
-            </div>
-            <div>
-              <label class="text-xs text-zinc-400">Месяц</label>
-              <input id="goal-month" type="number" step="1000" value="40000" onchange="saveGoals()"
-                     class="w-full mt-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white text-sm">
-              <div class="progress-bar mt-1">
-                <div id="progress-month" class="progress-fill" style="width:0%"></div>
-              </div>
-              <div class="text-xs text-zinc-500 mt-0.5" id="status-month">0 / 40000</div>
-            </div>
-          </div>
-        </div>
+        <label class="text-xs text-zinc-400">Неделя</label>
+        <input id="goal-week" type="number" onchange="saveCloud()" class="w-full mt-1 mb-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
+        <div class="progress-bar mb-1"><div id="progress-week" class="progress-fill" style="width:0%"></div></div>
+        <div id="status-week" class="text-xs text-zinc-500 mb-3">0 / 0</div>
 
-        <!-- Общая статистика + Топ-3 -->
-        <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-          <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
-          <div class="space-y-3">
-            <div>
-              <div class="text-sm text-zinc-400">Общая сумма</div>
-              <div id="total-sent" class="text-3xl font-bold">0.00</div>
-            </div>
-            <div>
-              <div class="text-sm text-zinc-400">Чистая прибыль</div>
-              <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800 grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <div class="text-zinc-400">Всего сделок</div>
-                <div id="total-deals" class="font-semibold text-white">0</div>
-              </div>
-              <div>
-                <div class="text-zinc-400">Средний %</div>
-                <div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div>
-              </div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800">
-              <div class="text-sm text-zinc-400">Рекорд дня</div>
-              <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
-              <div id="record-date" class="text-xs text-zinc-500"></div>
-            </div>
-            <div class="pt-2 border-t border-zinc-800">
-              <div class="text-sm text-zinc-400 mb-1">🏆 Топ-3 дня</div>
-              <div id="top3-days" class="text-xs space-y-1 text-zinc-300"></div>
-            </div>
-          </div>
+        <label class="text-xs text-zinc-400">Месяц</label>
+        <input id="goal-month" type="number" onchange="saveCloud()" class="w-full mt-1 mb-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
+        <div class="progress-bar mb-1"><div id="progress-month" class="progress-fill" style="width:0%"></div></div>
+        <div id="status-month" class="text-xs text-zinc-500">0 / 0</div>
+      </div>
+
+      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+        <h2 class="text-emerald-400 font-semibold mb-4">Общая статистика</h2>
+        <div class="text-sm text-zinc-400">Общая сумма</div>
+        <div id="total-sent" class="text-3xl font-bold">0.00</div>
+        <div class="text-sm text-zinc-400 mt-3">Чистая прибыль</div>
+        <div id="total-earned" class="text-3xl font-bold text-emerald-400">0.00</div>
+        <div class="grid grid-cols-2 gap-2 mt-4 text-sm">
+          <div><div class="text-zinc-400">Всего сделок</div><div id="total-deals" class="font-semibold">0</div></div>
+          <div><div class="text-zinc-400">Средний %</div><div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
         </div>
+        <div class="mt-3 text-sm text-zinc-400">Рекорд дня</div>
+        <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
+        <div id="record-date" class="text-xs text-zinc-500"></div>
       </div>
     </div>
 
-    <!-- История (на всю ширину) -->
-    <div class="mt-4">
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-          <h2 class="text-emerald-400 font-semibold">История за сегодня</h2>
-          <div class="flex gap-2">
-            <input id="search-input" type="text" placeholder="Поиск..." oninput="renderHistory()"
-                   class="bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-sm text-white w-40">
-            <button onclick="setSort('date')" class="text-xs py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700">По дате</button>
-            <button onclick="setSort('profit')" class="text-xs py-1.5 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700">По прибыли</button>
-          </div>
-        </div>
-        <div id="history" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[280px] overflow-y-auto pr-1"></div>
+    <div class="mt-4 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-emerald-400 font-semibold">История за сегодня</h2>
+        <button onclick="migrateLocalIfNeeded(true)" class="text-xs bg-zinc-800 px-3 py-1.5 rounded-xl">Подтянуть старые данные с этого браузера</button>
       </div>
-    </div>
-
-    <!-- ПРОГРЕСС ЦЕЛИ ДНЯ -->
-    <div class="mt-6">
-      <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
-        <div class="flex justify-between items-center mb-2">
-          <div class="text-black font-bold text-lg">Цель на день</div>
-          <div class="text-black font-bold text-lg">
-            <span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT
-          </div>
-        </div>
-        <div class="progress-bar" style="height:14px">
-          <div id="goal-progress-big" class="progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="flex justify-between mt-2 text-black/80 text-sm font-medium">
-          <span id="goal-status-big">Осталось 2000 USDT</span>
-          <span id="goal-percent-big">0%</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- КАЛЕНДАРЬ АКТИВНОСТИ (вместо графика) -->
-    <div class="mt-6 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6 backdrop-blur">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
-        <h2 class="text-emerald-400 font-semibold">Календарь активности</h2>
-        <div class="flex items-center gap-3 text-xs text-zinc-400">
-          <span>Меньше</span>
-          <div class="flex gap-1">
-            <div class="cal-day"></div>
-            <div class="cal-day cal-level-1"></div>
-            <div class="cal-day cal-level-2"></div>
-            <div class="cal-day cal-level-3"></div>
-            <div class="cal-day cal-level-4"></div>
-          </div>
-          <span>Больше</span>
-        </div>
-      </div>
-      <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
+      <div id="history" class="space-y-2 max-h-[320px] overflow-y-auto"></div>
     </div>
   </div>
 
 <script>
-let records = JSON.parse(localStorage.getItem('usdt_records') || '[]');
-let chartInstance = null;
-let currentSort = 'date';
+// ====== ВСТАВЬ СЮДА СВОЙ КОНФИГ ИЗ FIREBASE ======
+const firebaseConfig = {
+  apiKey: "AIzaSyAzR7lDgl42crdDIYfSp9vJxjgILJp1t10",
+  authDomain: "usdtdashboard.firebaseapp.com",
+  projectId: "usdtdashboard",
+  storageBucket: "usdtdashboard.firebasestorage.app",
+  messagingSenderId: "912872011601",
+  appId: "1:912872011601:web:262d656c0e5cf995b4c570"
+};
+// ==================================================
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let records = [];
+let goals = { day: 2000, week: 10000, month: 40000 };
+let currentUser = null;
 const todayStr = new Date().toLocaleDateString('ru-RU');
 
-// ===== ЦИТАТЫ =====
-const quotes = [
-  { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
-  { text: "Каждая сделка — это шаг. Главное — не останавливаться.", author: "Трейдерская мудрость" },
-  { text: "Богатство начинается не с большой суммы, а с правильного решения.", author: "—" },
-  { text: "Пока другие спят — ты считаешь. Пока другие ждут — ты действуешь.", author: "—" },
-  { text: "Процент — это не просто число. Это твоя свобода.", author: "—" },
-  { text: "Лучшая инвестиция — это вложенное сегодня усилие.", author: "—" },
-  { text: "Не гонись за идеальной сделкой. Гонись за количеством правильных действий.", author: "—" },
-  { text: "Дисциплина приносит больше денег, чем талант.", author: "—" },
-  { text: "Сегодняшний профит — это завтрашняя уверенность.", author: "—" },
-  { text: "Рынок не ждёт. Либо ты в игре, либо наблюдаешь со стороны.", author: "—" },
-  { text: "Маленькая прибыль каждый день сильнее большой удачи раз в год.", author: "—" },
-  { text: "Ты не зарабатываешь деньги. Ты зарабатываешь время своей жизни.", author: "—" },
-  { text: "Страх потери останавливает сильнее, чем жажда прибыли.", author: "—" },
-  { text: "Успех в цифрах начинается с успеха в привычках.", author: "—" },
-  { text: "Каждый отказ от сделки тоже решение. Иногда самое прибыльное.", author: "—" },
-  { text: "Деньги приходят к тем, кто относится к ним серьёзно.", author: "—" },
-  { text: "Не считай, сколько ты потерял. Считай, чему ты научился.", author: "—" },
-  { text: "Фокус на процессе даёт результат. Фокус на результате даёт стресс.", author: "—" },
-  { text: "Одна хорошая система лучше ста талантливых попыток.", author: "—" },
-  { text: "Твоя статистика — это зеркало твоей дисциплины.", author: "—" },
-  { text: "Большие деньги любят тишину и порядок.", author: "—" },
-  { text: "Сегодня ты строишь привычку, которая завтра построит капитал.", author: "—" },
-  { text: "Не сравнивай себя с другими. Сравнивай себя с собой вчерашним.", author: "—" },
-  { text: "Прибыль любит тех, кто считает её каждый день.", author: "—" },
-  { text: "Работа с цифрами — это разговор с реальностью.", author: "—" },
-  { text: "Лучший день для начала был вчера. Следующий лучший — сегодня.", author: "—" },
-  { text: "Чем точнее ты считаешь, тем спокойнее спишь.", author: "—" },
-  { text: "Деньги — это энергия. Куда ты её направишь — туда она и пойдёт.", author: "—" },
-  { text: "Сила не в одной большой сделке. Сила в серии правильных.", author: "—" },
-  { text: "Ты не в конкуренции с рынком. Ты в конкуренции со своей ленью.", author: "—" }
-];
-
-function getQuoteOfDay() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const diff = now - start;
-  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const index = dayOfYear % quotes.length;
-  return quotes[index];
+function showError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
 }
 
-function renderQuote() {
-  const q = getQuoteOfDay();
-  document.getElementById('quote-text').textContent = '«' + q.text + '»';
-  document.getElementById('quote-author').textContent = '— ' + q.author;
+function register() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || password.length < 6) return showError('Введи email и пароль от 6 символов');
+  auth.createUserWithEmailAndPassword(email, password)
+    .catch(err => showError(err.message));
 }
 
-// ===== ЧАСТИЦЫ =====
-const canvas = document.getElementById('particles-canvas');
-const ctx = canvas.getContext('2d');
-let particles = [];
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-function createParticles() {
-  particles = [];
-  for (let i = 0; i < 55; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      radius: Math.random() * 2 + 0.4,
-      speedY: Math.random() * 0.35 + 0.08,
-      speedX: (Math.random() - 0.5) * 0.25,
-      opacity: Math.random() * 0.45 + 0.1
-    });
-  }
-}
-createParticles();
-
-function animateParticles() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(16, 185, 129, ${p.opacity})`;
-    ctx.fill();
-    p.y -= p.speedY;
-    p.x += p.speedX;
-    if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
-    if (p.x < -10) p.x = canvas.width + 10;
-    if (p.x > canvas.width + 10) p.x = -10;
-  });
-  requestAnimationFrame(animateParticles);
-}
-animateParticles();
-
-// ===== ЗВУКИ =====
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type = 'click') {
-  try {
-    if (type === 'record') {
-      [0, 0.15].forEach((delay, i) => {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.connect(g); g.connect(audioCtx.destination);
-        o.frequency.value = 900 + i * 300;
-        g.gain.setValueAtTime(0.2, audioCtx.currentTime + delay);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.25);
-        o.start(audioCtx.currentTime + delay);
-        o.stop(audioCtx.currentTime + delay + 0.25);
-      });
-      return;
-    }
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.frequency.value = type === 'success' ? 1200 : 800;
-    gain.gain.setValueAtTime(type === 'success' ? 0.15 : 0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (type === 'success' ? 0.3 : 0.1));
-    osc.start();
-    osc.stop(audioCtx.currentTime + (type === 'success' ? 0.3 : 0.1));
-  } catch(e) {}
+function login() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) return showError('Введи email и пароль');
+  auth.signInWithEmailAndPassword(email, password)
+    .catch(err => showError(err.message));
 }
 
-// ===== ПАРОЛЬ =====
-function getPin() { return localStorage.getItem('dashboard_pin') || null; }
+function logout() {
+  auth.signOut();
+}
 
-function checkPin() {
-  const input = document.getElementById('pin-input').value;
-  const saved = getPin();
-  if (!saved) {
-    if (input.length < 4) {
-      document.getElementById('pin-error').textContent = 'Минимум 4 цифры';
-      document.getElementById('pin-error').classList.remove('hidden');
-      return;
-    }
-    localStorage.setItem('dashboard_pin', input);
-    unlock();
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    currentUser = null;
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
     return;
   }
-  if (input === saved) unlock();
-  else {
-    document.getElementById('pin-error').textContent = 'Неверный PIN';
-    document.getElementById('pin-error').classList.remove('hidden');
-    document.getElementById('pin-input').value = '';
-  }
-}
-
-function unlock() {
-  document.getElementById('lock-screen').style.display = 'none';
+  currentUser = user;
+  document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  document.getElementById('user-email').textContent = user.email;
+  await loadCloud();
+  await migrateLocalIfNeeded(false);
   renderAll();
-  renderQuote();
-}
-
-function changePin() {
-  const newPin = prompt('Введите новый PIN (минимум 4 цифры):');
-  if (newPin && newPin.length >= 4) {
-    localStorage.setItem('dashboard_pin', newPin);
-    alert('PIN успешно изменён');
-  } else if (newPin !== null) alert('PIN должен быть минимум 4 символа');
-}
-
-window.onload = () => {
-  const pin = getPin();
-  if (!pin) {
-    document.getElementById('lock-title').textContent = 'Создайте PIN';
-    document.getElementById('lock-subtitle').textContent = 'Придумайте код (мин. 4 цифры)';
-  }
-  document.getElementById('pin-input').focus();
-};
-
-// ===== Миграция =====
-records = records.map(r => {
-  if (r.sentByMe === undefined && r.percent != null && r.amount != null) {
-    const oldEarned = r.earned || (r.amount * r.percent / 100);
-    r.sentByMe = r.amount - oldEarned;
-    r.profit = oldEarned;
-  }
-  if (r.profit === undefined && r.amount != null && r.sentByMe != null) {
-    r.profit = r.amount - r.sentByMe;
-  }
-  if (r.percent === undefined && r.amount > 0 && r.profit != null) {
-    r.percent = +(r.profit / r.amount * 100).toFixed(2);
-  }
-  return r;
 });
-localStorage.setItem('usdt_records', JSON.stringify(records));
 
-// ===== Цели =====
-function saveGoals() {
-  localStorage.setItem('goal_day', document.getElementById('goal-day').value || 2000);
-  localStorage.setItem('goal_week', document.getElementById('goal-week').value || 10000);
-  localStorage.setItem('goal_month', document.getElementById('goal-month').value || 40000);
-  renderToday();
+function userRef() {
+  return db.collection('users').doc(currentUser.uid);
 }
 
-function getGoals() {
+async function loadCloud() {
+  setStatus('Загрузка из облака...');
+  const snap = await userRef().get();
+  if (snap.exists) {
+    const data = snap.data();
+    records = data.records || [];
+    goals = data.goals || goals;
+  }
+  setStatus('Синхронизировано');
+}
+
+async function saveCloud() {
+  if (!currentUser) return;
+  goals = {
+    day: parseFloat(document.getElementById('goal-day').value) || 2000,
+    week: parseFloat(document.getElementById('goal-week').value) || 10000,
+    month: parseFloat(document.getElementById('goal-month').value) || 40000
+  };
+  setStatus('Сохранение...');
+  await userRef().set({
+    records,
+    goals,
+    updatedAt: new Date().toISOString()
+  }, { merge: true });
+  setStatus('Сохранено в облако');
+}
+
+function setStatus(text) {
+  const el = document.getElementById('save-status');
+  if (el) el.textContent = text;
+}
+
+async function migrateLocalIfNeeded(force) {
+  const local = JSON.parse(localStorage.getItem('usdt_records') || '[]');
+  const extra = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
+  const allLocal = [...local, ...extra];
+  if (!allLocal.length) return;
+  if (!force && records.length) return;
+
+  const map = new Map();
+  [...records, ...allLocal].forEach(r => {
+    const key = (r.date || '') + '_' + (r.amount || 0) + '_' + (r.sentByMe || r.amountOut || 0) + '_' + (r.profit || r.netProfit || 0);
+    map.set(key, normalizeRecord(r));
+  });
+  records = Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
+  await saveCloud();
+  renderAll();
+  if (force) alert('Старые данные с этого браузера подтянуты в облако');
+}
+
+function normalizeRecord(r) {
+  const amount = Number(r.amount || r.amountIn || 0);
+  const sentByMe = Number(r.sentByMe || r.amountOut || 0);
+  const profit = Number(r.profit != null ? r.profit : (r.netProfit != null ? r.netProfit : (amount - sentByMe)));
+  const percent = Number(r.percent != null ? r.percent : (amount ? +(profit / amount * 100).toFixed(2) : 0));
   return {
-    day: parseFloat(localStorage.getItem('goal_day')) || 2000,
-    week: parseFloat(localStorage.getItem('goal_week')) || 10000,
-    month: parseFloat(localStorage.getItem('goal_month')) || 40000
+    date: r.date || new Date().toLocaleString('ru-RU'),
+    amount,
+    sentByMe,
+    profit,
+    percent
   };
 }
 
-// ===== Рекорд + Топ-3 =====
-function getDailyProfits() {
+async function calculate() {
+  const amount = parseFloat(document.getElementById('amount').value);
+  const sentByMe = parseFloat(document.getElementById('sentByMe').value);
+  if (isNaN(amount) || isNaN(sentByMe)) return alert('Введи обе суммы');
+  if (sentByMe > amount) return alert('Отправленная сумма не может быть больше входящей');
+
+  const profit = amount - sentByMe;
+  const percent = amount > 0 ? +(profit / amount * 100).toFixed(2) : 0;
+  records.unshift({
+    date: new Date().toLocaleString('ru-RU'),
+    amount, sentByMe, profit, percent
+  });
+  document.getElementById('amount').value = '';
+  document.getElementById('sentByMe').value = '';
+  renderAll();
+  await saveCloud();
+}
+
+function dayKey(dateStr) {
+  return (dateStr || '').split(',')[0].trim();
+}
+
+function renderAll() {
+  document.getElementById('goal-day').value = goals.day;
+  document.getElementById('goal-week').value = goals.week;
+  document.getElementById('goal-month').value = goals.month;
+
+  const todayRecords = records.filter(r => (r.date || '').includes(todayStr));
+  let tAmount = 0, tProfit = 0, tPercent = 0, best = null;
+  todayRecords.forEach(r => {
+    tAmount += r.amount || 0;
+    tProfit += r.profit || 0;
+    tPercent += r.percent || 0;
+    if (!best || r.profit > best.profit) best = r;
+  });
+  document.getElementById('today-total-sent').textContent = tAmount.toFixed(2);
+  document.getElementById('today-earned').textContent = tProfit.toFixed(2);
+  document.getElementById('today-deals').textContent = todayRecords.length;
+  document.getElementById('today-avg-percent').textContent = (todayRecords.length ? tPercent / todayRecords.length : 0).toFixed(1) + '%';
+  document.getElementById('best-deal').textContent = best ? `${best.profit.toFixed(2)} USDT (${best.percent}%)` : '—';
+
+  let aAmount = 0, aProfit = 0, aPercent = 0;
+  records.forEach(r => {
+    aAmount += r.amount || 0;
+    aProfit += r.profit || 0;
+    aPercent += r.percent || 0;
+  });
+  document.getElementById('total-sent').textContent = aAmount.toFixed(2);
+  document.getElementById('total-earned').textContent = aProfit.toFixed(2);
+  document.getElementById('total-deals').textContent = records.length;
+  document.getElementById('total-avg-percent').textContent = (records.length ? aPercent / records.length : 0).toFixed(1) + '%';
+
   const daily = {};
   records.forEach(r => {
-    const day = r.date.split(',')[0].trim();
-    daily[day] = (daily[day] || 0) + (r.profit || 0);
+    const d = dayKey(r.date);
+    daily[d] = (daily[d] || 0) + (r.profit || 0);
   });
-  return daily;
-}
+  let maxP = 0, maxD = '';
+  Object.entries(daily).forEach(([d, p]) => {
+    if (p > maxP) { maxP = p; maxD = d; }
+  });
+  document.getElementById('record-profit').textContent = maxP.toFixed(2);
+  document.getElementById('record-date').textContent = maxD ? '📅 ' + maxD : 'Рекорда пока нет';
 
-function recalculateRecord() {
-  const daily = getDailyProfits();
-  let maxProfit = 0, maxDate = '';
-  for (const [day, profit] of Object.entries(daily)) {
-    if (profit > maxProfit) {
-      maxProfit = profit;
-      maxDate = day;
-    }
-  }
-  localStorage.setItem('record_profit', maxProfit);
-  localStorage.setItem('record_date', maxDate);
-  return { profit: maxProfit, date: maxDate };
-}
+  const pDay = Math.min((tProfit / (goals.day || 1)) * 100, 100);
+  document.getElementById('progress-day').style.width = pDay + '%';
+  document.getElementById('status-day').textContent = `${tProfit.toFixed(0)} / ${goals.day}`;
 
-function getTop3Days() {
-  const daily = getDailyProfits();
-  return Object.entries(daily).sort((a, b) => b[1] - a[1]).slice(0, 3);
-}
+  const weekProfit = getWeekProfit();
+  const monthProfit = getMonthProfit();
+  document.getElementById('progress-week').style.width = Math.min((weekProfit / (goals.week || 1)) * 100, 100) + '%';
+  document.getElementById('status-week').textContent = `${weekProfit.toFixed(0)} / ${goals.week}`;
+  document.getElementById('progress-month').style.width = Math.min((monthProfit / (goals.month || 1)) * 100, 100) + '%';
+  document.getElementById('status-month').textContent = `${monthProfit.toFixed(0)} / ${goals.month}`;
 
-function checkRecord(todayProfit) {
-  const record = { profit: parseFloat(localStorage.getItem('record_profit')) || 0 };
-  if (todayProfit > record.profit) {
-    localStorage.setItem('record_profit', todayProfit);
-    localStorage.setItem('record_date', todayStr);
-    playSound('record');
-    animateCat();
-    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#fbbf24', '#10b981', '#ffffff'] });
-    setTimeout(() => {
-      alert(`🏆 НОВЫЙ РЕКОРД ДНЯ!\n\nПрибыль: ${todayProfit.toFixed(2)} USDT\nДата: ${todayStr}`);
-    }, 300);
-    return true;
-  }
-  return false;
-}
-
-function animateCat() {
-  const cat = document.getElementById('main-cat');
-  cat.classList.remove('cat-animate');
-  void cat.offsetWidth;
-  cat.classList.add('cat-animate');
-}
-
-function checkButtonReady() {
-  const amount = document.getElementById('amount').value;
-  const sent = document.getElementById('sentByMe').value;
-  const btn = document.getElementById('calc-btn');
-  if (amount && sent) btn.classList.add('btn-ready');
-  else btn.classList.remove('btn-ready');
-}
-
-function animateValue(el, start, end, duration = 700) {
-  if (!el) return;
-  const range = end - start;
-  if (Math.abs(range) < 0.01) {
-    el.textContent = end.toFixed(2);
-    return;
-  }
-  let startTime = null;
-  function step(timestamp) {
-    if (!startTime) startTime = timestamp;
-    const progress = Math.min((timestamp - startTime) / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
-    el.textContent = (start + range * ease).toFixed(2);
-    if (progress < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-
-function getYesterdayStr() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString('ru-RU');
+  let html = '';
+  todayRecords.forEach((r, i) => {
+    html += `<div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center">
+      <div class="text-sm">
+        <div class="text-zinc-400">${r.date}</div>
+        <div>Пришло: ${r.amount} → Отправил: ${r.sentByMe}<br>
+        <span class="text-emerald-400 font-semibold">Прибыль: ${(r.profit || 0).toFixed(2)}</span> (${r.percent}%)</div>
+      </div>
+      <button onclick="deleteRecord(${i})" class="text-red-400 px-2">✕</button>
+    </div>`;
+  });
+  document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
 }
 
 function getWeekProfit() {
@@ -645,7 +343,7 @@ function getWeekProfit() {
   monday.setDate(now.getDate() - dayOfWeek + 1);
   monday.setHours(0,0,0,0);
   return records.filter(r => {
-    const parts = r.date.split(',')[0].trim().split('.');
+    const parts = dayKey(r.date).split('.');
     if (parts.length < 3) return false;
     const d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
     return d >= monday;
@@ -655,369 +353,43 @@ function getWeekProfit() {
 function getMonthProfit() {
   const now = new Date();
   const monthStr = `${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
-  return records.filter(r => r.date.includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
+  return records.filter(r => (r.date || '').includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
 }
 
-function calculate() {
-  const amount = parseFloat(document.getElementById('amount').value);
-  const sentByMe = parseFloat(document.getElementById('sentByMe').value);
-
-  if (isNaN(amount) || isNaN(sentByMe)) {
-    alert('Введите обе суммы');
-    return;
-  }
-  if (sentByMe > amount) {
-    alert('Сумма, которую ты отправил, не может быть больше суммы, которую тебе прислали');
-    return;
-  }
-
-  const profit = amount - sentByMe;
-  const percent = amount > 0 ? +(profit / amount * 100).toFixed(2) : 0;
-  const date = new Date().toLocaleString('ru-RU');
-
-  records.unshift({ date, amount, sentByMe, profit, percent });
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-
-  playSound(profit >= 500 ? 'success' : 'click');
-  if (profit >= 500) {
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.65 }, colors: ['#10b981', '#34d399', '#fbbf24'] });
-  }
-
-  const todayProfit = records.filter(r => r.date.includes(todayStr)).reduce((sum, r) => sum + (r.profit || 0), 0);
-  const goals = getGoals();
-  if (todayProfit >= goals.day) animateCat();
-  checkRecord(todayProfit);
-
-  document.getElementById('amount').value = '';
-  document.getElementById('sentByMe').value = '';
-  checkButtonReady();
-  renderAll();
-}
-
-function setSort(type) {
-  currentSort = type;
-  renderHistory();
-}
-
-function renderAll() {
-  renderToday();
-  renderHistory();
-  renderPermanentStats();
-  updateRecordDisplay();
-  updateTop3();
-  renderActivityCalendar();
-}
-
-function renderToday() {
-  const todayRecords = records.filter(r => r.date.includes(todayStr));
-  let totalAmount = 0, totalProfit = 0, totalPercent = 0;
-  let bestDeal = null;
-
-  todayRecords.forEach(r => {
-    totalAmount += r.amount || 0;
-    totalProfit += r.profit || 0;
-    totalPercent += r.percent || 0;
-    if (!bestDeal || (r.profit || 0) > (bestDeal.profit || 0)) bestDeal = r;
-  });
-
-  const dealsCount = todayRecords.length;
-  const avgPercent = dealsCount > 0 ? (totalPercent / dealsCount) : 0;
-
-  animateValue(document.getElementById('today-total-sent'), parseFloat(document.getElementById('today-total-sent').textContent) || 0, totalAmount);
-  animateValue(document.getElementById('today-earned'), parseFloat(document.getElementById('today-earned').textContent) || 0, totalProfit);
-
-  document.getElementById('today-deals').textContent = dealsCount;
-  document.getElementById('today-avg-percent').textContent = avgPercent.toFixed(1) + '%';
-  document.getElementById('best-deal').textContent = bestDeal ? `${bestDeal.profit.toFixed(2)} USDT (${bestDeal.percent}%)` : '—';
-
-  const yesterdayStr = getYesterdayStr();
-  const yesterdayProfit = records.filter(r => r.date.includes(yesterdayStr)).reduce((s, r) => s + (r.profit || 0), 0);
-  const vsEl = document.getElementById('vs-yesterday');
-  if (yesterdayProfit === 0 && totalProfit === 0) {
-    vsEl.textContent = '—';
-    vsEl.className = 'font-semibold text-sm text-zinc-400';
-  } else if (yesterdayProfit === 0) {
-    vsEl.textContent = 'Первый день';
-    vsEl.className = 'font-semibold text-sm text-emerald-400';
-  } else {
-    const diff = totalProfit - yesterdayProfit;
-    const diffPercent = (diff / yesterdayProfit * 100);
-    if (diff > 0) {
-      vsEl.textContent = `+${diff.toFixed(0)} (${diffPercent.toFixed(0)}%)`;
-      vsEl.className = 'font-semibold text-sm text-emerald-400';
-    } else if (diff < 0) {
-      vsEl.textContent = `${diff.toFixed(0)} (${diffPercent.toFixed(0)}%)`;
-      vsEl.className = 'font-semibold text-sm text-red-400';
-    } else {
-      vsEl.textContent = 'Как вчера';
-      vsEl.className = 'font-semibold text-sm text-zinc-400';
-    }
-  }
-
-  const goals = getGoals();
-  document.getElementById('goal-day').value = goals.day;
-  document.getElementById('goal-week').value = goals.week;
-  document.getElementById('goal-month').value = goals.month;
-
-  const weekProfit = getWeekProfit();
-  const monthProfit = getMonthProfit();
-
-  const pDay = Math.min((totalProfit / goals.day) * 100, 100);
-  document.getElementById('progress-day').style.width = pDay + '%';
-  document.getElementById('status-day').textContent = `${totalProfit.toFixed(0)} / ${goals.day}`;
-
-  const pWeek = Math.min((weekProfit / goals.week) * 100, 100);
-  document.getElementById('progress-week').style.width = pWeek + '%';
-  document.getElementById('status-week').textContent = `${weekProfit.toFixed(0)} / ${goals.week}`;
-
-  const pMonth = Math.min((monthProfit / goals.month) * 100, 100);
-  document.getElementById('progress-month').style.width = pMonth + '%';
-  document.getElementById('status-month').textContent = `${monthProfit.toFixed(0)} / ${goals.month}`;
-
-  document.getElementById('goal-target-big').textContent = goals.day;
-  document.getElementById('goal-progress-big').style.width = pDay + '%';
-  document.getElementById('goal-current-big').textContent = totalProfit.toFixed(0);
-  document.getElementById('goal-percent-big').textContent = Math.round(pDay) + '%';
-  document.getElementById('goal-status-big').textContent = totalProfit >= goals.day ? '🎯 Цель достигнута!' : `Осталось ${(goals.day - totalProfit).toFixed(0)} USDT`;
-}
-
-function getProfitClass(profit) {
-  if (profit >= 500) return 'profit-mega';
-  if (profit >= 200) return 'profit-high';
-  if (profit >= 100) return 'profit-mid';
-  return 'profit-low';
-}
-
-function renderHistory() {
-  let list = records.filter(r => r.date.includes(todayStr));
-  const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
-  if (search) {
-    list = list.filter(r => 
-      String(r.amount).includes(search) || 
-      String(r.sentByMe).includes(search) || 
-      String(r.profit).includes(search)
-    );
-  }
-  if (currentSort === 'profit') {
-    list = [...list].sort((a, b) => (b.profit || 0) - (a.profit || 0));
-  }
-
-  let html = '';
-  list.forEach((r, i) => {
-    const cls = getProfitClass(r.profit || 0);
-    html += `
-      <div class="history-item ${cls} bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center group">
-        <div class="text-sm">
-          <div class="text-zinc-400">${r.date}</div>
-          <div>
-            Пришло: ${r.amount} → Отправил: ${r.sentByMe || 0}<br>
-            <span class="font-semibold text-emerald-400">Прибыль: ${(r.profit || 0).toFixed(2)}</span> (${r.percent || 0}%)
-          </div>
-        </div>
-        <button onclick="deleteRecord(${i})" class="text-red-400 hover:text-red-500 px-2 opacity-0 group-hover:opacity-100 transition">✕</button>
-      </div>`;
-  });
-  document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
-}
-
-function renderPermanentStats() {
-  let totalAmount = 0, totalProfit = 0, totalPercent = 0;
-  records.forEach(r => {
-    totalAmount += r.amount || 0;
-    totalProfit += r.profit || 0;
-    totalPercent += r.percent || 0;
-  });
-  const dealsCount = records.length;
-  const avgPercent = dealsCount > 0 ? (totalPercent / dealsCount) : 0;
-
-  animateValue(document.getElementById('total-sent'), parseFloat(document.getElementById('total-sent').textContent) || 0, totalAmount);
-  animateValue(document.getElementById('total-earned'), parseFloat(document.getElementById('total-earned').textContent) || 0, totalProfit);
-  document.getElementById('total-deals').textContent = dealsCount;
-  document.getElementById('total-avg-percent').textContent = avgPercent.toFixed(1) + '%';
-}
-
-function updateRecordDisplay() {
-  const record = recalculateRecord();
-  document.getElementById('record-profit').textContent = record.profit.toFixed(2);
-  document.getElementById('record-date').textContent = record.date ? `📅 ${record.date}` : 'Рекорда пока нет';
-}
-
-function updateTop3() {
-  const top = getTop3Days();
-  const el = document.getElementById('top3-days');
-  if (top.length === 0) {
-    el.innerHTML = '<div class="text-zinc-500">Пока нет данных</div>';
-    return;
-  }
-  el.innerHTML = top.map((item, i) => 
-    `<div>${i+1}. ${item[0]} — <span class="text-emerald-400 font-semibold">${item[1].toFixed(0)} USDT</span></div>`
-  ).join('');
-}
-
-// ===== КАЛЕНДАРЬ АКТИВНОСТИ =====
-function renderActivityCalendar() {
-  const daily = getDailyProfits();
-  const container = document.getElementById('activity-calendar');
-  
-  // Последние 16 недель
-  const weeks = 16;
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  
-  // Находим максимальный профит для нормализации
-  const profits = Object.values(daily);
-  const maxProfit = profits.length ? Math.max(...profits, 1) : 1;
-
-  let html = '<div class="flex gap-1">';
-  
-  for (let w = weeks - 1; w >= 0; w--) {
-    html += '<div class="flex flex-col gap-1">';
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (w * 7 + (6 - d)));
-      
-      const dayStr = date.toLocaleDateString('ru-RU');
-      const profit = daily[dayStr] || 0;
-      
-      let level = '';
-      if (profit > 0) {
-        const ratio = profit / maxProfit;
-        if (ratio > 0.75) level = 'cal-level-4';
-        else if (ratio > 0.5) level = 'cal-level-3';
-        else if (ratio > 0.25) level = 'cal-level-2';
-        else level = 'cal-level-1';
-      }
-      
-      const title = profit > 0 ? `${dayStr}: ${profit.toFixed(0)} USDT` : dayStr;
-      html += `<div class="cal-day ${level}" title="${title}"></div>`;
-    }
-    html += '</div>';
-  }
-  
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function deleteRecord(index) {
+async function deleteRecord(index) {
   if (!confirm('Удалить запись?')) return;
-  let list = records.filter(r => r.date.includes(todayStr));
-  const search = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
-  if (search) {
-    list = list.filter(r => 
-      String(r.amount).includes(search) || 
-      String(r.sentByMe).includes(search) || 
-      String(r.profit).includes(search)
-    );
-  }
-  if (currentSort === 'profit') list = [...list].sort((a, b) => (b.profit || 0) - (a.profit || 0));
-
-  const item = list[index];
+  const todayRecords = records.filter(r => (r.date || '').includes(todayStr));
+  const item = todayRecords[index];
   const realIndex = records.indexOf(item);
   if (realIndex === -1) return;
   records.splice(realIndex, 1);
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-  recalculateRecord();
   renderAll();
+  await saveCloud();
 }
 
 function showStatsByDate() {
   const dateInput = document.getElementById('selected-date').value;
-  if (!dateInput) return alert('Выберите дату');
+  if (!dateInput) return alert('Выбери дату');
   const selectedDate = new Date(dateInput).toLocaleDateString('ru-RU');
-  const filtered = records.filter(r => r.date.includes(selectedDate));
-  let totalAmount = 0, totalProfit = 0;
-  filtered.forEach(r => {
-    totalAmount += r.amount || 0;
-    totalProfit += r.profit || 0;
-  });
-  if (filtered.length === 0) alert(`За ${selectedDate} нет записей`);
-  else alert(`Статистика за ${selectedDate}:\n\nОбщая сумма: ${totalAmount.toFixed(2)} USDT\nЧистая прибыль: ${totalProfit.toFixed(2)} USDT\nСделок: ${filtered.length}`);
-}
-
-function resetPermanentStats() {
-  if (!confirm('Сбросить всю статистику? Это действие нельзя отменить.')) return;
-  records = [];
-  localStorage.setItem('usdt_records', JSON.stringify(records));
-  localStorage.removeItem('record_profit');
-  localStorage.removeItem('record_date');
-  renderAll();
+  const filtered = records.filter(r => (r.date || '').includes(selectedDate));
+  const amount = filtered.reduce((s, r) => s + (r.amount || 0), 0);
+  const profit = filtered.reduce((s, r) => s + (r.profit || 0), 0);
+  alert(filtered.length
+    ? `Статистика за ${selectedDate}\nСумма: ${amount.toFixed(2)}\nПрибыль: ${profit.toFixed(2)}\nСделок: ${filtered.length}`
+    : `За ${selectedDate} нет записей`);
 }
 
 function exportToCSV() {
-  if (records.length === 0) return alert('Нет данных');
+  if (!records.length) return alert('Нет данных');
   let csv = 'Дата,Пришло,Отправил я,Прибыль,Процент\n';
   records.forEach(r => {
-    csv += `"${r.date}",${r.amount},${r.sentByMe || 0},${r.profit || 0},${r.percent || 0}\n`;
+    csv += `"${r.date}",${r.amount},${r.sentByMe},${r.profit},${r.percent}\n`;
   });
   const blob = new Blob([csv], { type: 'text/csv' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'usdt_history.csv';
-  link.click();
-}
-
-function exportBeautifulReport() {
-  if (records.length === 0) return alert('Нет данных');
-
-  const totalAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
-  const totalProfit = records.reduce((s, r) => s + (r.profit || 0), 0);
-  const avgPercent = records.length ? (records.reduce((s, r) => s + (r.percent || 0), 0) / records.length) : 0;
-  const record = recalculateRecord();
-  const top3 = getTop3Days();
-  const goals = getGoals();
-  const todayProfit = records.filter(r => r.date.includes(todayStr)).reduce((s, r) => s + (r.profit || 0), 0);
-
-  let report = `
-═══════════════════════════════════════
-       🐱 USDT DASHBOARD — ОТЧЁТ
-═══════════════════════════════════════
-
-📅 Дата отчёта: ${new Date().toLocaleString('ru-RU')}
-
-───────────────────────────────────────
-📊 ОБЩАЯ СТАТИСТИКА
-───────────────────────────────────────
-• Всего сделок:        ${records.length}
-• Общая сумма:         ${totalAmount.toFixed(2)} USDT
-• Чистая прибыль:      ${totalProfit.toFixed(2)} USDT
-• Средний процент:     ${avgPercent.toFixed(1)}%
-
-───────────────────────────────────────
-🏆 РЕКОРД
-───────────────────────────────────────
-• Максимальная прибыль за день: ${record.profit.toFixed(2)} USDT
-• Дата рекорда: ${record.date || '—'}
-
-───────────────────────────────────────
-🥇 ТОП-3 ЛУЧШИХ ДНЯ
-───────────────────────────────────────
-${top3.length ? top3.map((t, i) => `${i+1}. ${t[0]} — ${t[1].toFixed(2)} USDT`).join('\n') : 'Нет данных'}
-
-───────────────────────────────────────
-🎯 ЦЕЛИ
-───────────────────────────────────────
-• Цель на день:   ${goals.day} USDT (сегодня: ${todayProfit.toFixed(0)})
-• Цель на неделю: ${goals.week} USDT
-• Цель на месяц:  ${goals.month} USDT
-
-───────────────────────────────────────
-📋 ПОСЛЕДНИЕ 10 СДЕЛОК
-───────────────────────────────────────
-`;
-
-  records.slice(0, 10).forEach((r, i) => {
-    report += `${i+1}. ${r.date}\n   Пришло: ${r.amount} | Отправил: ${r.sentByMe} | Прибыль: ${r.profit.toFixed(2)} (${r.percent}%)\n\n`;
-  });
-
-  report += `═══════════════════════════════════════
-     Сгенерировано USDT Dashboard
-═══════════════════════════════════════`;
-
-  const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `USDT_Report_${todayStr.replace(/\./g, '-')}.txt`;
-  link.click();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'usdt_cloud.csv';
+  a.click();
 }
 </script>
 </body>
