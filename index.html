@@ -10,10 +10,23 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body { background: linear-gradient(135deg, #052e16 0%, #000 100%); min-height: 100vh; }
-    .neon-card { transition: .3s; }
-    .neon-card:hover { box-shadow: 0 0 20px rgba(16,185,129,.35); border-color: #10b981; }
+    .neon-card {
+      transition: .3s;
+      border: 1px solid #10b981 !important;
+      box-shadow: 0 0 12px rgba(16,185,129,.18);
+    }
+    .neon-card:hover {
+      box-shadow: 0 0 22px rgba(16,185,129,.4);
+      border-color: #34d399 !important;
+    }
     .progress-bar { height: 10px; border-radius: 9999px; background: #1f2937; overflow: hidden; }
     .progress-fill { height: 100%; background: linear-gradient(90deg,#10b981,#6ee7b7); transition: width .6s; }
+    .cal-day { width: 14px; height: 14px; border-radius: 3px; background: #1f2937; }
+    .cal-day:hover { transform: scale(1.25); }
+    .cal-level-1 { background: #064e3b; box-shadow: 0 0 6px rgba(16,185,129,.3); }
+    .cal-level-2 { background: #059669; box-shadow: 0 0 8px rgba(16,185,129,.4); }
+    .cal-level-3 { background: #10b981; box-shadow: 0 0 10px rgba(16,185,129,.5); }
+    .cal-level-4 { background: #34d399; box-shadow: 0 0 12px rgba(52,211,153,.6); }
   </style>
 </head>
 <body class="text-zinc-200">
@@ -48,8 +61,16 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-      <div class="neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+    <div class="flex flex-col xl:flex-row gap-4">
+      <div class="xl:w-64 flex-shrink-0">
+        <div class="neon-card bg-zinc-900/80 rounded-3xl p-6 h-full">
+          <div class="text-emerald-400 font-semibold mb-4">💬 Цитата дня</div>
+          <div id="quote-text" class="text-zinc-200 text-sm leading-relaxed italic mb-4">Загрузка...</div>
+          <div id="quote-author" class="text-zinc-500 text-xs text-right">—</div>
+        </div>
+      </div>
+      <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="neon-card bg-zinc-900/80 rounded-3xl p-6">
         <h2 class="text-emerald-400 font-semibold mb-4">Калькулятор</h2>
         <label class="text-sm text-zinc-400">Сумма, которую отправил человек</label>
         <input id="amount" type="number" step="0.01" class="w-full mt-1 mb-3 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
@@ -105,14 +126,51 @@
         <div id="record-profit" class="text-xl font-bold text-amber-400">0.00</div>
         <div id="record-date" class="text-xs text-zinc-500"></div>
       </div>
+      </div>
     </div>
 
-    <div class="mt-4 neon-card bg-zinc-900/80 border border-zinc-700 rounded-3xl p-6">
+    <div class="mt-4 neon-card bg-zinc-900/80 rounded-3xl p-6">
       <div class="flex justify-between items-center mb-3">
         <h2 class="text-emerald-400 font-semibold">История за сегодня</h2>
         <button onclick="migrateLocalIfNeeded(true)" class="text-xs bg-zinc-800 px-3 py-1.5 rounded-xl">Подтянуть старые данные с этого браузера</button>
       </div>
       <div id="history" class="space-y-2 max-h-[320px] overflow-y-auto"></div>
+    </div>
+
+    <div class="mt-6">
+      <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-black font-bold text-lg">Цель на день</div>
+          <div class="text-black font-bold text-lg">
+            <span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT
+          </div>
+        </div>
+        <div class="progress-bar" style="height:14px;background:rgba(0,0,0,.25)">
+          <div id="goal-progress-big" class="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-black/80 text-sm font-medium">
+          <span id="goal-status-big">Осталось 2000 USDT</span>
+          <span id="goal-percent-big">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 neon-card bg-zinc-900/80 rounded-3xl p-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+        <h2 class="text-emerald-400 font-semibold">Календарь активности</h2>
+        <div class="flex items-center gap-3 text-xs text-zinc-400">
+          <span>Меньше</span>
+          <div class="flex gap-1">
+            <div class="cal-day"></div>
+            <div class="cal-day cal-level-1"></div>
+            <div class="cal-day cal-level-2"></div>
+            <div class="cal-day cal-level-3"></div>
+            <div class="cal-day cal-level-4"></div>
+          </div>
+          <span>Больше</span>
+        </div>
+      </div>
+      <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
     </div>
   </div>
 
@@ -136,6 +194,33 @@ let records = [];
 let goals = { day: 2000, week: 10000, month: 40000 };
 let currentUser = null;
 const todayStr = new Date().toLocaleDateString('ru-RU');
+
+const quotes = [
+  { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
+  { text: "Каждая сделка — это шаг. Главное — не останавливаться.", author: "—" },
+  { text: "Богатство начинается не с большой суммы, а с правильного решения.", author: "—" },
+  { text: "Пока другие спят — ты считаешь. Пока другие ждут — ты действуешь.", author: "—" },
+  { text: "Процент — это не просто число. Это твоя свобода.", author: "—" },
+  { text: "Дисциплина приносит больше денег, чем талант.", author: "—" },
+  { text: "Сегодняшний профит — это завтрашняя уверенность.", author: "—" },
+  { text: "Маленькая прибыль каждый день сильнее большой удачи раз в год.", author: "—" },
+  { text: "Успех в цифрах начинается с успеха в привычках.", author: "—" },
+  { text: "Твоя статистика — это зеркало твоей дисциплины.", author: "—" },
+  { text: "Большие деньги любят тишину и порядок.", author: "—" },
+  { text: "Не сравнивай себя с другими. Сравнивай себя с собой вчерашним.", author: "—" },
+  { text: "Прибыль любит тех, кто считает её каждый день.", author: "—" },
+  { text: "Лучший день для начала был вчера. Следующий лучший — сегодня.", author: "—" },
+  { text: "Сила не в одной большой сделке. Сила в серии правильных.", author: "—" }
+];
+
+function renderQuote() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - start) / 86400000);
+  const q = quotes[dayOfYear % quotes.length];
+  document.getElementById('quote-text').textContent = '«' + q.text + '»';
+  document.getElementById('quote-author').textContent = '— ' + q.author;
+}
 
 function showError(msg) {
   const el = document.getElementById('auth-error');
@@ -176,6 +261,7 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById('user-email').textContent = user.email;
   await loadCloud();
   await migrateLocalIfNeeded(false);
+  renderQuote();
   renderAll();
 });
 
@@ -322,6 +408,13 @@ function renderAll() {
   document.getElementById('progress-month').style.width = Math.min((monthProfit / (goals.month || 1)) * 100, 100) + '%';
   document.getElementById('status-month').textContent = `${monthProfit.toFixed(0)} / ${goals.month}`;
 
+  document.getElementById('goal-target-big').textContent = goals.day;
+  document.getElementById('goal-progress-big').style.width = pDay + '%';
+  document.getElementById('goal-current-big').textContent = tProfit.toFixed(0);
+  document.getElementById('goal-percent-big').textContent = Math.round(pDay) + '%';
+  document.getElementById('goal-status-big').textContent = tProfit >= goals.day ? '🎯 Цель достигнута!' : `Осталось ${(goals.day - tProfit).toFixed(0)} USDT`;
+  renderActivityCalendar();
+
   let html = '';
   todayRecords.forEach((r, i) => {
     html += `<div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 flex justify-between items-center">
@@ -334,6 +427,39 @@ function renderAll() {
     </div>`;
   });
   document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
+}
+
+function renderActivityCalendar() {
+  const daily = {};
+  records.forEach(r => {
+    const d = dayKey(r.date);
+    daily[d] = (daily[d] || 0) + (r.profit || 0);
+  });
+  const maxProfit = Math.max(1, ...Object.values(daily));
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let html = '<div class="flex gap-1">';
+  for (let w = 15; w >= 0; w--) {
+    html += '<div class="flex flex-col gap-1">';
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (w * 7 + (6 - d)));
+      const dayStr = date.toLocaleDateString('ru-RU');
+      const profit = daily[dayStr] || 0;
+      let level = '';
+      if (profit > 0) {
+        const ratio = profit / maxProfit;
+        if (ratio > 0.75) level = 'cal-level-4';
+        else if (ratio > 0.5) level = 'cal-level-3';
+        else if (ratio > 0.25) level = 'cal-level-2';
+        else level = 'cal-level-1';
+      }
+      html += `<div class="cal-day ${level}" title="${dayStr}: ${profit.toFixed(0)} USDT"></div>`;
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  document.getElementById('activity-calendar').innerHTML = html;
 }
 
 function getWeekProfit() {
