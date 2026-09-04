@@ -157,6 +157,22 @@
       </div>
       <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
     </div>
+
+    <div class="mt-5">
+      <div class="neon-card bg-zinc-900/80 rounded-2xl p-5">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-emerald-400 font-bold text-lg">Цель: 50 000$ чистой прибыли</div>
+          <div class="text-white font-bold text-lg"><span id="life-goal-current">0</span> / 50000 USDT</div>
+        </div>
+        <div class="progress-bar" style="height:14px">
+          <div id="life-goal-progress" class="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-zinc-400 text-sm font-medium">
+          <span id="life-goal-status">Осталось 50000 USDT</span>
+          <span id="life-goal-percent">0%</span>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -365,6 +381,12 @@ function renderAll() {
   document.getElementById('goal-current-big').textContent = tProfit.toFixed(0);
   document.getElementById('goal-percent-big').textContent = Math.round(pDay) + '%';
   document.getElementById('goal-status-big').textContent = tProfit >= goals.day ? '🎯 Цель достигнута!' : ('Осталось ' + (goals.day - tProfit).toFixed(0) + ' USDT');
+  const lifeGoal = 50000;
+  const lifePct = Math.min((aProfit / lifeGoal) * 100, 100);
+  document.getElementById('life-goal-current').textContent = aProfit.toFixed(0);
+  document.getElementById('life-goal-progress').style.width = lifePct + '%';
+  document.getElementById('life-goal-percent').textContent = Math.round(lifePct) + '%';
+  document.getElementById('life-goal-status').textContent = aProfit >= lifeGoal ? '🎯 Цель 50 000$ достигнута!' : ('Осталось ' + (lifeGoal - aProfit).toFixed(0) + ' USDT');
   renderActivityCalendar();
   let html = '';
   todayRecords.forEach((r, i) => {
