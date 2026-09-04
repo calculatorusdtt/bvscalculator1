@@ -189,6 +189,8 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 let records = [];
 let goals = { day: 2000, week: 10000, month: 40000 };
+let lifeGoalProfit = 0;
+let lifeGoalStartedAt = null;
 let currentUser = null;
 const todayStr = new Date().toLocaleDateString('ru-RU');
 const quotes = [
@@ -259,6 +261,17 @@ async function loadCloud() {
     const data = snap.data();
     records = data.records || [];
     goals = data.goals || goals;
+    lifeGoalProfit = Number(data.lifeGoalProfit || 0);
+    lifeGoalStartedAt = data.lifeGoalStartedAt || null;
+  }
+  if (!lifeGoalStartedAt) {
+    lifeGoalStartedAt = new Date().toISOString();
+    lifeGoalProfit = 0;
+    await userRef().set({
+      lifeGoalStartedAt,
+      lifeGoalProfit: 0,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
   }
   setStatus('Синхронизировано');
 }
@@ -270,7 +283,7 @@ async function saveCloud() {
     month: parseFloat(document.getElementById('goal-month').value) || 40000
   };
   setStatus('Сохранение...');
-  await userRef().set({ records, goals, updatedAt: new Date().toISOString() }, { merge: true });
+  await userRef().set({ records, goals, lifeGoalProfit, lifeGoalStartedAt, updatedAt: new Date().toISOString() }, { merge: true });
   setStatus('Сохранено в облако');
 }
 function setStatus(text) {
@@ -332,6 +345,7 @@ async function calculate() {
   const profit = amount - sentByMe;
   const percent = amount > 0 ? +(profit / amount * 100).toFixed(2) : 0;
   records.unshift({ date: new Date().toLocaleString('ru-RU'), amount, sentByMe, profit, percent });
+  lifeGoalProfit += profit;
   document.getElementById('amount').value = '';
   document.getElementById('sentByMe').value = '';
   renderAll();
@@ -382,11 +396,11 @@ function renderAll() {
   document.getElementById('goal-percent-big').textContent = Math.round(pDay) + '%';
   document.getElementById('goal-status-big').textContent = tProfit >= goals.day ? '🎯 Цель достигнута!' : ('Осталось ' + (goals.day - tProfit).toFixed(0) + ' USDT');
   const lifeGoal = 50000;
-  const lifePct = Math.min((aProfit / lifeGoal) * 100, 100);
-  document.getElementById('life-goal-current').textContent = aProfit.toFixed(0);
+  const lifePct = Math.min((lifeGoalProfit / lifeGoal) * 100, 100);
+  document.getElementById('life-goal-current').textContent = lifeGoalProfit.toFixed(0);
   document.getElementById('life-goal-progress').style.width = lifePct + '%';
   document.getElementById('life-goal-percent').textContent = Math.round(lifePct) + '%';
-  document.getElementById('life-goal-status').textContent = aProfit >= lifeGoal ? '🎯 Цель 50 000$ достигнута!' : ('Осталось ' + (lifeGoal - aProfit).toFixed(0) + ' USDT');
+  document.getElementById('life-goal-status').textContent = lifeGoalProfit >= lifeGoal ? '🎯 Цель 50 000$ достигнута!' : ('Осталось ' + (lifeGoal - lifeGoalProfit).toFixed(0) + ' USDT');
   renderActivityCalendar();
   let html = '';
   todayRecords.forEach((r, i) => {
@@ -446,6 +460,7 @@ async function deleteRecord(index) {
   const item = todayRecords[index];
   const realIndex = records.indexOf(item);
   if (realIndex === -1) return;
+  lifeGoalProfit = Math.max(0, lifeGoalProfit - (item.profit || 0));
   records.splice(realIndex, 1);
   renderAll();
   await saveCloud();
