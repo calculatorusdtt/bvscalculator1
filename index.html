@@ -248,8 +248,6 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById('app').classList.remove('hidden');
   document.getElementById('user-email').textContent = user.email;
   await loadCloud();
-  await migrateLocalIfNeeded(false);
-  await restoreLostBase(true);
   renderQuote();
   renderAll();
 });
@@ -267,11 +265,7 @@ async function loadCloud() {
   if (!lifeGoalStartedAt) {
     lifeGoalStartedAt = new Date().toISOString();
     lifeGoalProfit = 0;
-    await userRef().set({
-      lifeGoalStartedAt,
-      lifeGoalProfit: 0,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    await userRef().set({ lifeGoalStartedAt, lifeGoalProfit: 0, updatedAt: new Date().toISOString() }, { merge: true });
   }
   setStatus('Синхронизировано');
 }
@@ -290,21 +284,27 @@ function setStatus(text) {
   const el = document.getElementById('save-status');
   if (el) el.textContent = text;
 }
+function isDeal(r) {
+  if (!r || typeof r !== 'object') return false;
+  const amount = Number(r.amount || r.amountIn || 0);
+  const profit = Number(r.profit != null ? r.profit : (r.netProfit || 0));
+  return amount > 0 && amount < 20000 && Math.abs(profit) < 20000 && (r.date || r.amount);
+}
 async function migrateLocalIfNeeded(force) {
-  const local = JSON.parse(localStorage.getItem('usdt_records') || '[]');
-  const extra = JSON.parse(localStorage.getItem('usdt_stats') || '[]');
-  const allLocal = [...local, ...extra];
-  if (!allLocal.length) return;
-  if (!force && records.length) return;
+  if (!force) return;
+  const localRaw = JSON.parse(localStorage.getItem('usdt_records') || '[]');
+  const local = Array.isArray(localRaw) ? localRaw.filter(isDeal) : [];
+  if (!local.length) return alert('В этом браузере нет нормальных сделок для подтягивания');
   const map = new Map();
-  [...records, ...allLocal].forEach(r => {
-    const key = (r.date || '') + '_' + (r.amount || 0) + '_' + (r.sentByMe || r.amountOut || 0) + '_' + (r.profit || r.netProfit || 0);
-    map.set(key, normalizeRecord(r));
+  [...records, ...local].forEach(r => {
+    const n = normalizeRecord(r);
+    const key = (n.date || '') + '_' + n.amount + '_' + n.sentByMe + '_' + n.profit;
+    map.set(key, n);
   });
   records = Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
   await saveCloud();
   renderAll();
-  if (force) alert('Старые данные с этого браузера подтянуты в облако');
+  alert('Подтянуты только сделки из этого браузера.');
 }
 function normalizeRecord(r) {
   const amount = Number(r.amount || r.amountIn || 0);
@@ -325,14 +325,7 @@ async function restoreLostBase(auto = false) {
   }
   const missingProfit = +(missingAmount * avgPercent / 100).toFixed(2);
   const sentByMe = +(missingAmount - missingProfit).toFixed(2);
-  records.push({
-    date: '20.08.2026, 12:00:00',
-    amount: missingAmount,
-    sentByMe,
-    profit: missingProfit,
-    percent: +avgPercent.toFixed(2),
-    note: 'restore47k'
-  });
+  records.push({ date: '20.08.2026, 12:00:00', amount: missingAmount, sentByMe, profit: missingProfit, percent: +avgPercent.toFixed(2), note: 'restore47k' });
   await saveCloud();
   renderAll();
   if (!auto) alert('База восстановлена.\nСумма: 47000\nПрибыль: ' + (currentProfit + missingProfit).toFixed(2));
@@ -357,6 +350,7 @@ function renderAll() {
   document.getElementById('goal-week').value = goals.week;
   document.getElementById('goal-month').value = goals.month;
   const todayRecords = records.filter(r => (r.date || '').includes(todayStr));
+  const historyRecords = records.filter(r => r.note !== 'restore47k').slice(0, 40);
   let tAmount = 0, tProfit = 0, tPercent = 0, best = null;
   todayRecords.forEach(r => {
     tAmount += r.amount || 0;
@@ -403,10 +397,10 @@ function renderAll() {
   document.getElementById('life-goal-status').textContent = lifeGoalProfit >= lifeGoal ? '🎯 Цель 50 000$ достигнута!' : ('Осталось ' + (lifeGoal - lifeGoalProfit).toFixed(0) + ' USDT');
   renderActivityCalendar();
   let html = '';
-  todayRecords.forEach((r, i) => {
-    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs leading-snug"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + ' → ' + r.sentByMe + '</div><div class="text-emerald-400 font-semibold">' + (r.profit || 0).toFixed(2) + ' <span class="text-zinc-500 font-normal">(' + r.percent + '%)</span></div></div><button onclick="deleteRecord(' + i + ')" class="text-red-400 px-1">✕</button></div>';
+  historyRecords.forEach((r, i) => {
+    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs leading-snug"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + ' → ' + r.sentByMe + '</div><div class="text-emerald-400 font-semibold">' + (r.profit || 0).toFixed(2) + ' <span class="text-zinc-500 font-normal">(' + r.percent + '%)</span></div></div><button onclick="deleteHistoryRecord(' + i + ')" class="text-red-400 px-1">✕</button></div>';
   });
-  document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей за сегодня</div>';
+  document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей</div>';
 }
 function renderActivityCalendar() {
   const daily = {};
@@ -454,13 +448,15 @@ function getMonthProfit() {
   const monthStr = String(now.getMonth()+1).padStart(2,'0') + '.' + now.getFullYear();
   return records.filter(r => (r.date || '').includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
 }
-async function deleteRecord(index) {
+async function deleteHistoryRecord(index) {
   if (!confirm('Удалить запись?')) return;
-  const todayRecords = records.filter(r => (r.date || '').includes(todayStr));
-  const item = todayRecords[index];
+  const historyRecords = records.filter(r => r.note !== 'restore47k').slice(0, 40);
+  const item = historyRecords[index];
   const realIndex = records.indexOf(item);
   if (realIndex === -1) return;
-  lifeGoalProfit = Math.max(0, lifeGoalProfit - (item.profit || 0));
+  if (lifeGoalStartedAt && new Date(item.date) >= new Date(lifeGoalStartedAt)) {
+    lifeGoalProfit = Math.max(0, lifeGoalProfit - (item.profit || 0));
+  }
   records.splice(realIndex, 1);
   renderAll();
   await saveCloud();
