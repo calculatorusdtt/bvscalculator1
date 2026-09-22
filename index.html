@@ -3,11 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>USDT Dashboard Cloud</title>
+  <title>USDT Dashboard Local</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     body { background: linear-gradient(135deg, #052e16 0%, #000 100%); min-height: 100vh; }
     .neon-card {
@@ -30,22 +27,9 @@
   </style>
 </head>
 <body class="text-zinc-200">
-  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8 w-full max-w-md">
-      <div class="text-5xl text-center mb-4">🐱</div>
-      <h1 class="text-2xl font-bold text-emerald-400 text-center mb-2">USDT Cloud</h1>
-      <p class="text-zinc-400 text-sm text-center mb-6">Одни данные с любого устройства</p>
-      <input id="email" type="email" placeholder="Email" class="w-full mb-3 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white">
-      <input id="password" type="password" placeholder="Пароль (минимум 6 символов)" class="w-full mb-4 bg-zinc-950 border border-zinc-700 rounded-2xl px-4 py-3 text-white" onkeydown="if(event.key==='Enter') login()">
-      <button onclick="login()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-3 rounded-2xl mb-3">Войти</button>
-      <button onclick="register()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white py-3 rounded-2xl">Создать аккаунт</button>
-      <p id="auth-error" class="text-red-400 text-sm mt-3 hidden"></p>
-    </div>
-  </div>
-
-  <div id="app" class="hidden max-w-[1680px] mx-auto p-5">
+  <div id="app" class="max-w-[1680px] mx-auto p-5">
     <div class="flex flex-col md:flex-row justify-between gap-4 mb-5">
-      <h1 class="text-3xl font-bold text-emerald-400">🐱 USDT DASHBOARD <span class="text-sm text-emerald-300">CLOUD</span></h1>
+      <h1 class="text-3xl font-bold text-emerald-400">🐱 USDT DASHBOARD <span class="text-sm text-emerald-300">LOCAL</span></h1>
       <div class="flex flex-wrap gap-2 items-center">
         <span id="user-email" class="text-xs text-zinc-400"></span>
         <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-3 py-2 text-sm">
@@ -53,7 +37,7 @@
         <button onclick="restoreLostBase()" class="bg-amber-600 px-4 py-2 rounded-2xl text-sm">Вернуть базу ~47000</button>
         <button onclick="migrateLocalIfNeeded(true)" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">Подтянуть с браузера</button>
         <button onclick="exportToCSV()" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">CSV</button>
-        <button onclick="logout()" class="bg-red-600 px-4 py-2 rounded-2xl text-sm">Выйти</button>
+        <button onclick="wipeLocal()" class="bg-red-600 px-4 py-2 rounded-2xl text-sm">Сбросить</button>
       </div>
     </div>
 
@@ -73,7 +57,7 @@
           <label class="text-xs text-zinc-400">Сумма, которую я отправил человеку</label>
           <input id="sentByMe" type="number" step="0.01" class="w-full mt-1 mb-3 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
           <button onclick="calculate()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
-          <p id="save-status" class="text-xs text-zinc-500 mt-2">Облако: ожидание</p>
+          <p id="save-status" class="text-xs text-zinc-500 mt-2">Сохранено на этом устройстве</p>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Сегодня</h2>
@@ -176,22 +160,11 @@
   </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAzR7lDgl42crdDIYfSp9vJxjgILJp1t10",
-  authDomain: "usdtdashboard.firebaseapp.com",
-  projectId: "usdtdashboard",
-  storageBucket: "usdtdashboard.firebasestorage.app",
-  messagingSenderId: "912872011601",
-  appId: "1:912872011601:web:262d656c0e5cf995b4c570"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const LS_KEY = "usdt_local_v1";
 let records = [];
 let goals = { day: 2000, week: 10000, month: 40000 };
 let lifeGoalProfit = 0;
 let lifeGoalStartedAt = null;
-let currentUser = null;
 const todayStr = new Date().toLocaleDateString('ru-RU');
 const quotes = [
   { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
@@ -218,67 +191,43 @@ function renderQuote() {
   document.getElementById('quote-text').textContent = '«' + q.text + '»';
   document.getElementById('quote-author').textContent = '— ' + q.author;
 }
-function showError(msg) {
-  const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.classList.remove('hidden');
-}
-function register() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  if (!email || password.length < 6) return showError('Введи email и пароль от 6 символов');
-  auth.createUserWithEmailAndPassword(email, password).catch(err => showError(err.message));
-}
-function login() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  if (!email || !password) return showError('Введи email и пароль');
-  auth.signInWithEmailAndPassword(email, password).catch(err => showError(err.message));
-}
-function logout() { auth.signOut(); }
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
-    currentUser = null;
-    document.getElementById('auth-screen').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
-    return;
-  }
-  currentUser = user;
-  document.getElementById('auth-screen').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-  document.getElementById('user-email').textContent = user.email;
-  await loadCloud();
-  renderQuote();
+function wipeLocal() {
+  if (!confirm("Стереть все сделки на этом устройстве?")) return;
+  localStorage.removeItem(LS_KEY);
+  records = [];
+  goals = { day: 2000, week: 10000, month: 40000 };
+  lifeGoalProfit = 0;
+  lifeGoalStartedAt = new Date().toISOString();
+  saveCloud();
   renderAll();
-});
-function userRef() { return db.collection('users').doc(currentUser.uid); }
-async function loadCloud() {
-  setStatus('Загрузка из облака...');
-  const snap = await userRef().get();
-  if (snap.exists) {
-    const data = snap.data();
-    records = data.records || [];
-    goals = data.goals || goals;
-    lifeGoalProfit = Number(data.lifeGoalProfit || 0);
-    lifeGoalStartedAt = data.lifeGoalStartedAt || null;
-  }
-  if (!lifeGoalStartedAt) {
-    lifeGoalStartedAt = new Date().toISOString();
-    lifeGoalProfit = 0;
-    await userRef().set({ lifeGoalStartedAt, lifeGoalProfit: 0, updatedAt: new Date().toISOString() }, { merge: true });
-  }
-  setStatus('Синхронизировано');
 }
-async function saveCloud() {
-  if (!currentUser) return;
-  goals = {
-    day: parseFloat(document.getElementById('goal-day').value) || 2000,
-    week: parseFloat(document.getElementById('goal-week').value) || 10000,
-    month: parseFloat(document.getElementById('goal-month').value) || 40000
-  };
-  setStatus('Сохранение...');
-  await userRef().set({ records, goals, lifeGoalProfit, lifeGoalStartedAt, updatedAt: new Date().toISOString() }, { merge: true });
-  setStatus('Сохранено в облако');
+function loadCloud() {
+  setStatus("Загрузка...");
+  try {
+    const data = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (data) {
+      records = data.records || [];
+      goals = data.goals || goals;
+      lifeGoalProfit = Number(data.lifeGoalProfit || 0);
+      lifeGoalStartedAt = data.lifeGoalStartedAt || null;
+    }
+  } catch (e) {}
+  if (!lifeGoalStartedAt) lifeGoalStartedAt = new Date().toISOString();
+  setStatus("Сохранено на этом устройстве");
+}
+function saveCloud() {
+  const dayEl = document.getElementById("goal-day");
+  if (dayEl) {
+    goals = {
+      day: parseFloat(document.getElementById("goal-day").value) || 2000,
+      week: parseFloat(document.getElementById("goal-week").value) || 10000,
+      month: parseFloat(document.getElementById("goal-month").value) || 40000
+    };
+  }
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    records, goals, lifeGoalProfit, lifeGoalStartedAt, updatedAt: new Date().toISOString()
+  }));
+  setStatus("Сохранено на этом устройстве");
 }
 function setStatus(text) {
   const el = document.getElementById('save-status');
@@ -477,9 +426,13 @@ function exportToCSV() {
   const blob = new Blob([csv], { type: 'text/csv' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'usdt_cloud.csv';
+  a.download = 'usdt_local.csv';
   a.click();
 }
+document.getElementById("user-email").textContent = "только это устройство";
+loadCloud();
+renderQuote();
+renderAll();
 </script>
 </body>
 </html>
