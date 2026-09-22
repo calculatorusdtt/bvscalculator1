@@ -7,23 +7,14 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: linear-gradient(135deg, #052e16 0%, #000 100%); min-height: 100vh; }
-    .neon-card {
-      transition: .3s;
-      border: 1px solid #10b981 !important;
-      box-shadow: 0 0 12px rgba(16,185,129,.18);
-    }
-    .neon-card:hover {
-      box-shadow: 0 0 22px rgba(16,185,129,.4);
-      border-color: #34d399 !important;
-    }
-    .progress-bar { height: 10px; border-radius: 9999px; background: #1f2937; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg,#10b981,#6ee7b7); transition: width .6s; }
-    .cal-day { width: 14px; height: 14px; border-radius: 3px; background: #1f2937; }
-    .cal-day:hover { transform: scale(1.25); }
-    .cal-level-1 { background: #064e3b; box-shadow: 0 0 6px rgba(16,185,129,.3); }
-    .cal-level-2 { background: #059669; box-shadow: 0 0 8px rgba(16,185,129,.4); }
-    .cal-level-3 { background: #10b981; box-shadow: 0 0 10px rgba(16,185,129,.5); }
-    .cal-level-4 { background: #34d399; box-shadow: 0 0 12px rgba(52,211,153,.6); }
+    .neon-card { transition:.3s; border:1px solid #10b981 !important; box-shadow:0 0 12px rgba(16,185,129,.18); }
+    .neon-card:hover { box-shadow:0 0 22px rgba(16,185,129,.4); border-color:#34d399 !important; }
+    .progress-bar { height:10px; border-radius:9999px; background:#1f2937; overflow:hidden; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,#10b981,#6ee7b7); transition:width .6s; }
+    .cal-day { width:14px; height:14px; border-radius:3px; background:#1f2937; }
+    .cal-day:hover { transform:scale(1.25); }
+    .cal-level-1 { background:#064e3b; } .cal-level-2 { background:#059669; }
+    .cal-level-3 { background:#10b981; } .cal-level-4 { background:#34d399; }
   </style>
 </head>
 <body class="text-zinc-200">
@@ -34,18 +25,16 @@
         <span id="user-email" class="text-xs text-zinc-400"></span>
         <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-3 py-2 text-sm">
         <button onclick="showStatsByDate()" class="bg-emerald-600 px-4 py-2 rounded-2xl text-sm">По дате</button>
-        <button onclick="restoreLostBase()" class="bg-amber-600 px-4 py-2 rounded-2xl text-sm">Вернуть базу ~47000</button>
-        <button onclick="migrateLocalIfNeeded(true)" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">Подтянуть с браузера</button>
+        <button onclick="restoreLostBase()" class="bg-amber-600 px-4 py-2 rounded-2xl text-sm">Вернуть базу 90100</button>
         <button onclick="exportToCSV()" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">CSV</button>
         <button onclick="wipeLocal()" class="bg-red-600 px-4 py-2 rounded-2xl text-sm">Сбросить</button>
       </div>
     </div>
-
     <div class="flex flex-col xl:flex-row gap-3">
       <div class="xl:w-52 flex-shrink-0">
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4 h-full">
           <div class="text-emerald-400 font-semibold mb-3">💬 Цитата дня</div>
-          <div id="quote-text" class="text-zinc-200 text-sm leading-relaxed italic mb-3">Загрузка...</div>
+          <div id="quote-text" class="text-zinc-200 text-sm italic mb-3">Загрузка...</div>
           <div id="quote-author" class="text-zinc-500 text-xs text-right">—</div>
         </div>
       </div>
@@ -56,15 +45,15 @@
           <input id="amount" type="number" step="0.01" class="w-full mt-1 mb-2 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
           <label class="text-xs text-zinc-400">Сумма, которую я отправил человеку</label>
           <input id="sentByMe" type="number" step="0.01" class="w-full mt-1 mb-3 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
-          <button onclick="calculate()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
+          <button onclick="calculate()" class="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
           <p id="save-status" class="text-xs text-zinc-500 mt-2">Сохранено на этом устройстве</p>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Сегодня</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
-          <div id="today-total-sent" class="text-2xl font-bold leading-tight">0.00</div>
+          <div id="today-total-sent" class="text-2xl font-bold">0.00</div>
           <div class="text-xs text-zinc-400 mt-2">Чистая прибыль</div>
-          <div id="today-earned" class="text-2xl font-bold text-emerald-400 leading-tight">0.00</div>
+          <div id="today-earned" class="text-2xl font-bold text-emerald-400">0.00</div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Сделок</div><div id="today-deals" class="font-semibold">0</div></div>
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
@@ -90,15 +79,15 @@
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
           <h2 class="text-emerald-400 font-semibold mb-3">Общая статистика</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
-          <div id="total-sent" class="text-2xl font-bold leading-tight">0.00</div>
+          <div id="total-sent" class="text-2xl font-bold">0.00</div>
           <div class="text-xs text-zinc-400 mt-2">Чистая прибыль</div>
-          <div id="total-earned" class="text-2xl font-bold text-emerald-400 leading-tight">0.00</div>
+          <div id="total-earned" class="text-2xl font-bold text-emerald-400">0.00</div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Всего сделок</div><div id="total-deals" class="font-semibold">0</div></div>
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
           </div>
           <div class="mt-2 text-xs text-zinc-400">Рекорд дня</div>
-          <div id="record-profit" class="text-lg font-bold text-amber-400 leading-tight">0.00</div>
+          <div id="record-profit" class="text-lg font-bold text-amber-400">0.00</div>
           <div id="record-date" class="text-xs text-zinc-500"></div>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4 flex flex-col">
@@ -107,102 +96,74 @@
         </div>
       </div>
     </div>
-
     <div class="mt-5">
-      <div class="bg-emerald-500 rounded-2xl p-5 shadow-lg shadow-emerald-500/30">
+      <div class="bg-emerald-500 rounded-2xl p-5">
         <div class="flex justify-between items-center mb-2">
           <div class="text-black font-bold text-lg">Цель на день</div>
           <div class="text-black font-bold text-lg"><span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT</div>
         </div>
-        <div class="progress-bar" style="height:14px;background:rgba(0,0,0,.25)">
-          <div id="goal-progress-big" class="progress-fill" style="width:0%"></div>
-        </div>
+        <div class="progress-bar" style="height:14px;background:rgba(0,0,0,.25)"><div id="goal-progress-big" class="progress-fill" style="width:0%"></div></div>
         <div class="flex justify-between mt-2 text-black/80 text-sm font-medium">
           <span id="goal-status-big">Осталось 2000 USDT</span>
           <span id="goal-percent-big">0%</span>
         </div>
       </div>
     </div>
-
     <div class="mt-5 neon-card bg-zinc-900/80 rounded-3xl p-5">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <h2 class="text-emerald-400 font-semibold">Календарь активности</h2>
-        <div class="flex items-center gap-3 text-xs text-zinc-400">
-          <span>Меньше</span>
-          <div class="flex gap-1">
-            <div class="cal-day"></div>
-            <div class="cal-day cal-level-1"></div>
-            <div class="cal-day cal-level-2"></div>
-            <div class="cal-day cal-level-3"></div>
-            <div class="cal-day cal-level-4"></div>
-          </div>
-          <span>Больше</span>
-        </div>
-      </div>
+      <h2 class="text-emerald-400 font-semibold mb-4">Календарь активности</h2>
       <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
     </div>
-
-    <div class="mt-5">
-      <div class="neon-card bg-zinc-900/80 rounded-2xl p-5">
-        <div class="flex justify-between items-center mb-2">
-          <div class="text-emerald-400 font-bold text-lg">Цель: 50 000$ чистой прибыли</div>
-          <div class="text-white font-bold text-lg"><span id="life-goal-current">0</span> / 50000 USDT</div>
-        </div>
-        <div class="progress-bar" style="height:14px">
-          <div id="life-goal-progress" class="progress-fill" style="width:0%"></div>
-        </div>
-        <div class="flex justify-between mt-2 text-zinc-400 text-sm font-medium">
-          <span id="life-goal-status">Осталось 50000 USDT</span>
-          <span id="life-goal-percent">0%</span>
-        </div>
+    <div class="mt-5 neon-card bg-zinc-900/80 rounded-2xl p-5">
+      <div class="flex justify-between items-center mb-2">
+        <div class="text-emerald-400 font-bold text-lg">Цель: 50 000$ чистой прибыли</div>
+        <div class="text-white font-bold text-lg"><span id="life-goal-current">0</span> / 50000 USDT</div>
+      </div>
+      <div class="progress-bar" style="height:14px"><div id="life-goal-progress" class="progress-fill" style="width:0%"></div></div>
+      <div class="flex justify-between mt-2 text-zinc-400 text-sm font-medium">
+        <span id="life-goal-status">Осталось 50000 USDT</span>
+        <span id="life-goal-percent">0%</span>
       </div>
     </div>
   </div>
-
 <script>
 const LS_KEY = "usdt_local_v1";
 let records = [];
 let goals = { day: 2000, week: 10000, month: 40000 };
 let lifeGoalProfit = 0;
 let lifeGoalStartedAt = null;
-const todayStr = new Date().toLocaleDateString('ru-RU');
+const todayStr = new Date().toLocaleDateString("ru-RU");
 const quotes = [
-  { text: "Деньги любят скорость и дисциплину. Медлительность — их главный враг.", author: "Неизвестный" },
   { text: "Каждая сделка — это шаг. Главное — не останавливаться.", author: "—" },
-  { text: "Богатство начинается не с большой суммы, а с правильного решения.", author: "—" },
-  { text: "Пока другие спят — ты считаешь. Пока другие ждут — ты действуешь.", author: "—" },
-  { text: "Процент — это не просто число. Это твоя свобода.", author: "—" },
-  { text: "Дисциплина приносит больше денег, чем талант.", author: "—" },
-  { text: "Сегодняшний профит — это завтрашняя уверенность.", author: "—" },
-  { text: "Маленькая прибыль каждый день сильнее большой удачи раз в год.", author: "—" },
-  { text: "Успех в цифрах начинается с успеха в привычках.", author: "—" },
-  { text: "Твоя статистика — это зеркало твоей дисциплины.", author: "—" },
-  { text: "Большие деньги любят тишину и порядок.", author: "—" },
-  { text: "Не сравнивай себя с другими. Сравнивай себя с собой вчерашним.", author: "—" },
-  { text: "Прибыль любит тех, кто считает её каждый день.", author: "—" },
-  { text: "Лучший день для начала был вчера. Следующий лучший — сегодня.", author: "—" },
-  { text: "Сила не в одной большой сделке. Сила в серии правильных.", author: "—" }
+  { text: "Дисциплина приносит больше денег, чем талант.", author: "—" }
 ];
 function renderQuote() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now - start) / 86400000);
-  const q = quotes[dayOfYear % quotes.length];
-  document.getElementById('quote-text').textContent = '«' + q.text + '»';
-  document.getElementById('quote-author').textContent = '— ' + q.author;
+  const q = quotes[0];
+  document.getElementById("quote-text").textContent = "«" + q.text + "»";
+  document.getElementById("quote-author").textContent = "— " + q.author;
 }
 function wipeLocal() {
-  if (!confirm("Стереть все сделки на этом устройстве?")) return;
+  if (!confirm("Стереть все сделки?")) return;
   localStorage.removeItem(LS_KEY);
-  records = [];
-  goals = { day: 2000, week: 10000, month: 40000 };
+  localStorage.removeItem("usdt_base_90100_v1");
+  records = []; goals = { day: 2000, week: 10000, month: 40000 };
+  applyBase90100(); saveCloud(); renderAll();
+}
+function applyBase90100() {
+  records = records.filter(r => r.note !== "restore47k" && r.note !== "base90100");
+  const currentAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
+  const currentProfit = records.reduce((s, r) => s + (r.profit || 0), 0);
+  records.push({
+    date: "01.08.2026, 12:00:00",
+    amount: +(90100 - currentAmount).toFixed(2),
+    sentByMe: +((90100 - currentAmount) - (32000 - currentProfit)).toFixed(2),
+    profit: +(32000 - currentProfit).toFixed(2),
+    percent: +((32000 / 90100) * 100).toFixed(2),
+    note: "base90100"
+  });
   lifeGoalProfit = 0;
   lifeGoalStartedAt = new Date().toISOString();
-  saveCloud();
-  renderAll();
 }
 function loadCloud() {
-  setStatus("Загрузка...");
   try {
     const data = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (data) {
@@ -212,6 +173,11 @@ function loadCloud() {
       lifeGoalStartedAt = data.lifeGoalStartedAt || null;
     }
   } catch (e) {}
+  if (!localStorage.getItem("usdt_base_90100_v1")) {
+    applyBase90100();
+    localStorage.setItem("usdt_base_90100_v1", "1");
+    saveCloud();
+  }
   if (!lifeGoalStartedAt) lifeGoalStartedAt = new Date().toISOString();
   setStatus("Сохранено на этом устройстве");
 }
@@ -224,132 +190,75 @@ function saveCloud() {
       month: parseFloat(document.getElementById("goal-month").value) || 40000
     };
   }
-  localStorage.setItem(LS_KEY, JSON.stringify({
-    records, goals, lifeGoalProfit, lifeGoalStartedAt, updatedAt: new Date().toISOString()
-  }));
+  localStorage.setItem(LS_KEY, JSON.stringify({ records, goals, lifeGoalProfit, lifeGoalStartedAt, updatedAt: new Date().toISOString() }));
   setStatus("Сохранено на этом устройстве");
 }
-function setStatus(text) {
-  const el = document.getElementById('save-status');
-  if (el) el.textContent = text;
-}
-function isDeal(r) {
-  if (!r || typeof r !== 'object') return false;
-  const amount = Number(r.amount || r.amountIn || 0);
-  const profit = Number(r.profit != null ? r.profit : (r.netProfit || 0));
-  return amount > 0 && amount < 20000 && Math.abs(profit) < 20000 && (r.date || r.amount);
-}
-async function migrateLocalIfNeeded(force) {
-  if (!force) return;
-  const localRaw = JSON.parse(localStorage.getItem('usdt_records') || '[]');
-  const local = Array.isArray(localRaw) ? localRaw.filter(isDeal) : [];
-  if (!local.length) return alert('В этом браузере нет нормальных сделок для подтягивания');
-  const map = new Map();
-  [...records, ...local].forEach(r => {
-    const n = normalizeRecord(r);
-    const key = (n.date || '') + '_' + n.amount + '_' + n.sentByMe + '_' + n.profit;
-    map.set(key, n);
-  });
-  records = Array.from(map.values()).sort((a, b) => (a.date < b.date ? 1 : -1));
-  await saveCloud();
-  renderAll();
-  alert('Подтянуты только сделки из этого браузера.');
-}
-function normalizeRecord(r) {
-  const amount = Number(r.amount || r.amountIn || 0);
-  const sentByMe = Number(r.sentByMe || r.amountOut || 0);
-  const profit = Number(r.profit != null ? r.profit : (r.netProfit != null ? r.netProfit : (amount - sentByMe)));
-  const percent = Number(r.percent != null ? r.percent : (amount ? +(profit / amount * 100).toFixed(2) : 0));
-  return { date: r.date || new Date().toLocaleString('ru-RU'), amount, sentByMe, profit, percent };
-}
-async function restoreLostBase(auto = false) {
-  records = records.filter(r => r.note !== 'restore47k');
-  const currentAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
-  const currentProfit = records.reduce((s, r) => s + (r.profit || 0), 0);
-  const avgPercent = currentAmount > 0 ? (currentProfit / currentAmount * 100) : 31.6;
-  const missingAmount = +(47000 - currentAmount).toFixed(2);
-  if (missingAmount <= 0) {
-    if (!auto) alert('Общая сумма уже не меньше 47000.');
-    return;
-  }
-  const missingProfit = +(missingAmount * avgPercent / 100).toFixed(2);
-  const sentByMe = +(missingAmount - missingProfit).toFixed(2);
-  records.push({ date: '20.08.2026, 12:00:00', amount: missingAmount, sentByMe, profit: missingProfit, percent: +avgPercent.toFixed(2), note: 'restore47k' });
-  await saveCloud();
-  renderAll();
-  if (!auto) alert('База восстановлена.\nСумма: 47000\nПрибыль: ' + (currentProfit + missingProfit).toFixed(2));
-}
+function setStatus(t) { const el = document.getElementById("save-status"); if (el) el.textContent = t; }
+async function restoreLostBase() { applyBase90100(); await saveCloud(); renderAll(); alert("База: 90100 / прибыль 32000. К цели 50000$ не добавлено."); }
 async function calculate() {
-  const amount = parseFloat(document.getElementById('amount').value);
-  const sentByMe = parseFloat(document.getElementById('sentByMe').value);
-  if (isNaN(amount) || isNaN(sentByMe)) return alert('Введи обе суммы');
-  if (sentByMe > amount) return alert('Отправленная сумма не может быть больше входящей');
+  const amount = parseFloat(document.getElementById("amount").value);
+  const sentByMe = parseFloat(document.getElementById("sentByMe").value);
+  if (isNaN(amount) || isNaN(sentByMe)) return alert("Введи обе суммы");
+  if (sentByMe > amount) return alert("Отправленная сумма не может быть больше входящей");
   const profit = amount - sentByMe;
   const percent = amount > 0 ? +(profit / amount * 100).toFixed(2) : 0;
-  records.unshift({ date: new Date().toLocaleString('ru-RU'), amount, sentByMe, profit, percent });
+  records.unshift({ date: new Date().toLocaleString("ru-RU"), amount, sentByMe, profit, percent });
   lifeGoalProfit += profit;
-  document.getElementById('amount').value = '';
-  document.getElementById('sentByMe').value = '';
-  renderAll();
-  await saveCloud();
+  document.getElementById("amount").value = "";
+  document.getElementById("sentByMe").value = "";
+  renderAll(); await saveCloud();
 }
-function dayKey(dateStr) { return (dateStr || '').split(',')[0].trim(); }
+function dayKey(dateStr) { return (dateStr || "").split(",")[0].trim(); }
 function renderAll() {
-  document.getElementById('goal-day').value = goals.day;
-  document.getElementById('goal-week').value = goals.week;
-  document.getElementById('goal-month').value = goals.month;
-  const todayRecords = records.filter(r => (r.date || '').includes(todayStr));
-  const historyRecords = records.filter(r => r.note !== 'restore47k').slice(0, 40);
+  document.getElementById("goal-day").value = goals.day;
+  document.getElementById("goal-week").value = goals.week;
+  document.getElementById("goal-month").value = goals.month;
+  const todayRecords = records.filter(r => (r.date || "").includes(todayStr) && r.note !== "base90100");
+  const historyRecords = records.filter(r => r.note !== "restore47k" && r.note !== "base90100").slice(0, 40);
   let tAmount = 0, tProfit = 0, tPercent = 0, best = null;
-  todayRecords.forEach(r => {
-    tAmount += r.amount || 0;
-    tProfit += r.profit || 0;
-    tPercent += r.percent || 0;
-    if (!best || r.profit > best.profit) best = r;
-  });
-  document.getElementById('today-total-sent').textContent = tAmount.toFixed(2);
-  document.getElementById('today-earned').textContent = tProfit.toFixed(2);
-  document.getElementById('today-deals').textContent = todayRecords.length;
-  document.getElementById('today-avg-percent').textContent = (todayRecords.length ? tPercent / todayRecords.length : 0).toFixed(1) + '%';
-  document.getElementById('best-deal').textContent = best ? (best.profit.toFixed(2) + ' USDT (' + best.percent + '%)') : '—';
+  todayRecords.forEach(r => { tAmount += r.amount || 0; tProfit += r.profit || 0; tPercent += r.percent || 0; if (!best || r.profit > best.profit) best = r; });
+  document.getElementById("today-total-sent").textContent = tAmount.toFixed(2);
+  document.getElementById("today-earned").textContent = tProfit.toFixed(2);
+  document.getElementById("today-deals").textContent = todayRecords.length;
+  document.getElementById("today-avg-percent").textContent = (todayRecords.length ? tPercent / todayRecords.length : 0).toFixed(1) + "%";
+  document.getElementById("best-deal").textContent = best ? (best.profit.toFixed(2) + " USDT (" + best.percent + "%)") : "—";
   let aAmount = 0, aProfit = 0, aPercent = 0;
   records.forEach(r => { aAmount += r.amount || 0; aProfit += r.profit || 0; aPercent += r.percent || 0; });
-  document.getElementById('total-sent').textContent = aAmount.toFixed(2);
-  document.getElementById('total-earned').textContent = aProfit.toFixed(2);
-  document.getElementById('total-deals').textContent = records.length;
-  document.getElementById('total-avg-percent').textContent = (records.length ? aPercent / records.length : 0).toFixed(1) + '%';
+  document.getElementById("total-sent").textContent = aAmount.toFixed(2);
+  document.getElementById("total-earned").textContent = aProfit.toFixed(2);
+  document.getElementById("total-deals").textContent = records.length;
+  document.getElementById("total-avg-percent").textContent = (records.length ? aPercent / records.length : 0).toFixed(1) + "%";
   const daily = {};
   records.forEach(r => { const d = dayKey(r.date); daily[d] = (daily[d] || 0) + (r.profit || 0); });
-  let maxP = 0, maxD = '';
+  let maxP = 0, maxD = "";
   Object.entries(daily).forEach(([d, p]) => { if (p > maxP) { maxP = p; maxD = d; } });
-  document.getElementById('record-profit').textContent = maxP.toFixed(2);
-  document.getElementById('record-date').textContent = maxD ? ('📅 ' + maxD) : 'Рекорда пока нет';
+  document.getElementById("record-profit").textContent = maxP.toFixed(2);
+  document.getElementById("record-date").textContent = maxD ? ("📅 " + maxD) : "Рекорда пока нет";
   const pDay = Math.min((tProfit / (goals.day || 1)) * 100, 100);
-  document.getElementById('progress-day').style.width = pDay + '%';
-  document.getElementById('status-day').textContent = tProfit.toFixed(0) + ' / ' + goals.day;
+  document.getElementById("progress-day").style.width = pDay + "%";
+  document.getElementById("status-day").textContent = tProfit.toFixed(0) + " / " + goals.day;
   const weekProfit = getWeekProfit();
   const monthProfit = getMonthProfit();
-  document.getElementById('progress-week').style.width = Math.min((weekProfit / (goals.week || 1)) * 100, 100) + '%';
-  document.getElementById('status-week').textContent = weekProfit.toFixed(0) + ' / ' + goals.week;
-  document.getElementById('progress-month').style.width = Math.min((monthProfit / (goals.month || 1)) * 100, 100) + '%';
-  document.getElementById('status-month').textContent = monthProfit.toFixed(0) + ' / ' + goals.month;
-  document.getElementById('goal-target-big').textContent = goals.day;
-  document.getElementById('goal-progress-big').style.width = pDay + '%';
-  document.getElementById('goal-current-big').textContent = tProfit.toFixed(0);
-  document.getElementById('goal-percent-big').textContent = Math.round(pDay) + '%';
-  document.getElementById('goal-status-big').textContent = tProfit >= goals.day ? '🎯 Цель достигнута!' : ('Осталось ' + (goals.day - tProfit).toFixed(0) + ' USDT');
-  const lifeGoal = 50000;
-  const lifePct = Math.min((lifeGoalProfit / lifeGoal) * 100, 100);
-  document.getElementById('life-goal-current').textContent = lifeGoalProfit.toFixed(0);
-  document.getElementById('life-goal-progress').style.width = lifePct + '%';
-  document.getElementById('life-goal-percent').textContent = Math.round(lifePct) + '%';
-  document.getElementById('life-goal-status').textContent = lifeGoalProfit >= lifeGoal ? '🎯 Цель 50 000$ достигнута!' : ('Осталось ' + (lifeGoal - lifeGoalProfit).toFixed(0) + ' USDT');
+  document.getElementById("progress-week").style.width = Math.min((weekProfit / (goals.week || 1)) * 100, 100) + "%";
+  document.getElementById("status-week").textContent = weekProfit.toFixed(0) + " / " + goals.week;
+  document.getElementById("progress-month").style.width = Math.min((monthProfit / (goals.month || 1)) * 100, 100) + "%";
+  document.getElementById("status-month").textContent = monthProfit.toFixed(0) + " / " + goals.month;
+  document.getElementById("goal-target-big").textContent = goals.day;
+  document.getElementById("goal-progress-big").style.width = pDay + "%";
+  document.getElementById("goal-current-big").textContent = tProfit.toFixed(0);
+  document.getElementById("goal-percent-big").textContent = Math.round(pDay) + "%";
+  document.getElementById("goal-status-big").textContent = tProfit >= goals.day ? "Цель достигнута!" : ("Осталось " + (goals.day - tProfit).toFixed(0) + " USDT");
+  const lifePct = Math.min((lifeGoalProfit / 50000) * 100, 100);
+  document.getElementById("life-goal-current").textContent = lifeGoalProfit.toFixed(0);
+  document.getElementById("life-goal-progress").style.width = lifePct + "%";
+  document.getElementById("life-goal-percent").textContent = Math.round(lifePct) + "%";
+  document.getElementById("life-goal-status").textContent = lifeGoalProfit >= 50000 ? "Цель 50 000$ достигнута!" : ("Осталось " + (50000 - lifeGoalProfit).toFixed(0) + " USDT");
   renderActivityCalendar();
-  let html = '';
+  let html = "";
   historyRecords.forEach((r, i) => {
-    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs leading-snug"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + ' → ' + r.sentByMe + '</div><div class="text-emerald-400 font-semibold">' + (r.profit || 0).toFixed(2) + ' <span class="text-zinc-500 font-normal">(' + r.percent + '%)</span></div></div><button onclick="deleteHistoryRecord(' + i + ')" class="text-red-400 px-1">✕</button></div>';
+    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + " → " + r.sentByMe + '</div><div class="text-emerald-400 font-semibold">' + (r.profit || 0).toFixed(2) + " (" + r.percent + "%)</div></div><button onclick=\"deleteHistoryRecord(" + i + ')\" class="text-red-400">✕</button></div>';
   });
-  document.getElementById('history').innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей</div>';
+  document.getElementById("history").innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей</div>';
 }
 function renderActivityCalendar() {
   const daily = {};
@@ -360,79 +269,57 @@ function renderActivityCalendar() {
   for (let w = 15; w >= 0; w--) {
     html += '<div class="flex flex-col gap-1">';
     for (let d = 0; d < 7; d++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - (w * 7 + (6 - d)));
-      const dayStr = date.toLocaleDateString('ru-RU');
+      const date = new Date(today); date.setDate(today.getDate() - (w * 7 + (6 - d)));
+      const dayStr = date.toLocaleDateString("ru-RU");
       const profit = daily[dayStr] || 0;
-      let level = '';
+      let level = "";
       if (profit > 0) {
         const ratio = profit / maxProfit;
-        if (ratio > 0.75) level = 'cal-level-4';
-        else if (ratio > 0.5) level = 'cal-level-3';
-        else if (ratio > 0.25) level = 'cal-level-2';
-        else level = 'cal-level-1';
+        level = ratio > 0.75 ? "cal-level-4" : ratio > 0.5 ? "cal-level-3" : ratio > 0.25 ? "cal-level-2" : "cal-level-1";
       }
-      html += '<div class="cal-day ' + level + '" title="' + dayStr + ': ' + profit.toFixed(0) + ' USDT"></div>';
+      html += '<div class="cal-day ' + level + '" title="' + dayStr + ": " + profit.toFixed(0) + ' USDT"></div>';
     }
-    html += '</div>';
+    html += "</div>";
   }
-  html += '</div>';
-  document.getElementById('activity-calendar').innerHTML = html;
+  document.getElementById("activity-calendar").innerHTML = html + "</div>";
 }
 function getWeekProfit() {
-  const now = new Date();
-  const dayOfWeek = now.getDay() || 7;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - dayOfWeek + 1);
-  monday.setHours(0,0,0,0);
+  const now = new Date(); const dayOfWeek = now.getDay() || 7;
+  const monday = new Date(now); monday.setDate(now.getDate() - dayOfWeek + 1); monday.setHours(0,0,0,0);
   return records.filter(r => {
-    const parts = dayKey(r.date).split('.');
-    if (parts.length < 3) return false;
-    const d = new Date(parts[2] + '-' + parts[1] + '-' + parts[0]);
-    return d >= monday;
+    const parts = dayKey(r.date).split("."); if (parts.length < 3) return false;
+    return new Date(parts[2] + "-" + parts[1] + "-" + parts[0]) >= monday;
   }).reduce((s, r) => s + (r.profit || 0), 0);
 }
 function getMonthProfit() {
   const now = new Date();
-  const monthStr = String(now.getMonth()+1).padStart(2,'0') + '.' + now.getFullYear();
-  return records.filter(r => (r.date || '').includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
+  const monthStr = String(now.getMonth()+1).padStart(2,"0") + "." + now.getFullYear();
+  return records.filter(r => (r.date || "").includes(monthStr)).reduce((s, r) => s + (r.profit || 0), 0);
 }
 async function deleteHistoryRecord(index) {
-  if (!confirm('Удалить запись?')) return;
-  const historyRecords = records.filter(r => r.note !== 'restore47k').slice(0, 40);
-  const item = historyRecords[index];
-  const realIndex = records.indexOf(item);
-  if (realIndex === -1) return;
-  if (lifeGoalStartedAt && new Date(item.date) >= new Date(lifeGoalStartedAt)) {
-    lifeGoalProfit = Math.max(0, lifeGoalProfit - (item.profit || 0));
-  }
-  records.splice(realIndex, 1);
-  renderAll();
-  await saveCloud();
+  if (!confirm("Удалить запись?")) return;
+  const historyRecords = records.filter(r => r.note !== "restore47k" && r.note !== "base90100").slice(0, 40);
+  const item = historyRecords[index]; const realIndex = records.indexOf(item); if (realIndex === -1) return;
+  lifeGoalProfit = Math.max(0, lifeGoalProfit - (item.profit || 0));
+  records.splice(realIndex, 1); renderAll(); await saveCloud();
 }
 function showStatsByDate() {
-  const dateInput = document.getElementById('selected-date').value;
-  if (!dateInput) return alert('Выбери дату');
-  const selectedDate = new Date(dateInput).toLocaleDateString('ru-RU');
-  const filtered = records.filter(r => (r.date || '').includes(selectedDate));
+  const dateInput = document.getElementById("selected-date").value;
+  if (!dateInput) return alert("Выбери дату");
+  const selectedDate = new Date(dateInput).toLocaleDateString("ru-RU");
+  const filtered = records.filter(r => (r.date || "").includes(selectedDate));
   const amount = filtered.reduce((s, r) => s + (r.amount || 0), 0);
   const profit = filtered.reduce((s, r) => s + (r.profit || 0), 0);
-  alert(filtered.length ? ('Статистика за ' + selectedDate + '\nСумма: ' + amount.toFixed(2) + '\nПрибыль: ' + profit.toFixed(2) + '\nСделок: ' + filtered.length) : ('За ' + selectedDate + ' нет записей'));
+  alert(filtered.length ? ("Статистика за " + selectedDate + "\nСумма: " + amount.toFixed(2) + "\nПрибыль: " + profit.toFixed(2)) : ("За " + selectedDate + " нет записей"));
 }
 function exportToCSV() {
-  if (!records.length) return alert('Нет данных');
-  let csv = 'Дата,Пришло,Отправил я,Прибыль,Процент\n';
-  records.forEach(r => { csv += '"' + r.date + '",' + r.amount + ',' + r.sentByMe + ',' + r.profit + ',' + r.percent + '\n'; });
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'usdt_local.csv';
-  a.click();
+  if (!records.length) return alert("Нет данных");
+  let csv = "Дата,Пришло,Отправил я,Прибыль,Процент\n";
+  records.forEach(r => { csv += '"' + r.date + '",' + r.amount + "," + r.sentByMe + "," + r.profit + "," + r.percent + "\n"; });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "usdt_local.csv"; a.click();
 }
 document.getElementById("user-email").textContent = "только это устройство";
-loadCloud();
-renderQuote();
-renderAll();
+loadCloud(); renderQuote(); renderAll();
 </script>
 </body>
 </html>
