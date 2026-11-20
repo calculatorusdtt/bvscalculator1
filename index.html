@@ -6,25 +6,25 @@
   <title>USDT Dashboard Local</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: linear-gradient(135deg, #052e16 0%, #000 100%); min-height: 100vh; }
-    .neon-card { transition:.3s; border:1px solid #10b981 !important; box-shadow:0 0 12px rgba(16,185,129,.18); }
-    .neon-card:hover { box-shadow:0 0 22px rgba(16,185,129,.4); border-color:#34d399 !important; }
+    body { background: linear-gradient(135deg, #0c1929 0%, #000 100%); min-height: 100vh; }
+    .neon-card { transition:.3s; border:1px solid #3b82f6 !important; box-shadow:0 0 12px rgba(59,130,246,.18); }
+    .neon-card:hover { box-shadow:0 0 22px rgba(59,130,246,.4); border-color:#60a5fa !important; }
     .progress-bar { height:10px; border-radius:9999px; background:#1f2937; overflow:hidden; }
-    .progress-fill { height:100%; background:linear-gradient(90deg,#10b981,#6ee7b7); transition:width .6s; }
+    .progress-fill { height:100%; background:linear-gradient(90deg,#3b82f6,#93c5fd); transition:width .6s; }
     .cal-day { width:14px; height:14px; border-radius:3px; background:#1f2937; }
     .cal-day:hover { transform:scale(1.25); }
-    .cal-level-1 { background:#064e3b; } .cal-level-2 { background:#059669; }
-    .cal-level-3 { background:#10b981; } .cal-level-4 { background:#34d399; }
+    .cal-level-1 { background:#1e3a8a; } .cal-level-2 { background:#2563eb; }
+    .cal-level-3 { background:#3b82f6; } .cal-level-4 { background:#60a5fa; }
   </style>
 </head>
 <body class="text-zinc-200">
   <div id="app" class="max-w-[1680px] mx-auto p-5">
     <div class="flex flex-col md:flex-row justify-between gap-4 mb-5">
-      <h1 class="text-3xl font-bold text-emerald-400">🐱 USDT DASHBOARD <span class="text-sm text-emerald-300">LOCAL</span></h1>
+      <h1 class="text-3xl font-bold text-blue-400">🐱 USDT DASHBOARD <span class="text-sm text-blue-300">LOCAL</span></h1>
       <div class="flex flex-wrap gap-2 items-center">
         <span id="user-email" class="text-xs text-zinc-400"></span>
         <input type="date" id="selected-date" class="bg-zinc-900 border border-zinc-700 rounded-2xl px-3 py-2 text-sm">
-        <button onclick="showStatsByDate()" class="bg-emerald-600 px-4 py-2 rounded-2xl text-sm">По дате</button>
+        <button onclick="showStatsByDate()" class="bg-blue-600 px-4 py-2 rounded-2xl text-sm">По дате</button>
         <button onclick="restoreLostBase()" class="bg-amber-600 px-4 py-2 rounded-2xl text-sm">Вернуть базу 90100</button>
         <button onclick="exportToCSV()" class="bg-zinc-800 px-4 py-2 rounded-2xl text-sm">CSV</button>
         <button onclick="wipeLocal()" class="bg-red-600 px-4 py-2 rounded-2xl text-sm">Сбросить</button>
@@ -33,36 +33,36 @@
     <div class="flex flex-col xl:flex-row gap-3">
       <div class="xl:w-52 flex-shrink-0">
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4 h-full">
-          <div class="text-emerald-400 font-semibold mb-3">💬 Цитата дня</div>
+          <div class="text-blue-400 font-semibold mb-3">💬 Цитата дня</div>
           <div id="quote-text" class="text-zinc-200 text-sm italic mb-3">Загрузка...</div>
           <div id="quote-author" class="text-zinc-500 text-xs text-right">—</div>
         </div>
       </div>
       <div class="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
-          <h2 class="text-emerald-400 font-semibold mb-3">Калькулятор</h2>
+          <h2 class="text-blue-400 font-semibold mb-3">Калькулятор</h2>
           <label class="text-xs text-zinc-400">Сумма, которую отправил человек</label>
           <input id="amount" type="number" step="0.01" class="w-full mt-1 mb-2 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
           <label class="text-xs text-zinc-400">Сумма, которую я отправил человеку</label>
           <input id="sentByMe" type="number" step="0.01" class="w-full mt-1 mb-3 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2 text-white">
-          <button onclick="calculate()" class="w-full bg-emerald-500 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
+          <button onclick="calculate()" class="w-full bg-blue-500 text-black font-semibold py-2.5 rounded-xl">Рассчитать</button>
           <p id="save-status" class="text-xs text-zinc-500 mt-2">Сохранено на этом устройстве</p>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
-          <h2 class="text-emerald-400 font-semibold mb-3">Сегодня</h2>
+          <h2 class="text-blue-400 font-semibold mb-3">Сегодня</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
           <div id="today-total-sent" class="text-2xl font-bold">0.00</div>
           <div class="text-xs text-zinc-400 mt-2">Чистая прибыль</div>
-          <div id="today-earned" class="text-2xl font-bold text-emerald-400">0.00</div>
+          <div id="today-earned" class="text-2xl font-bold text-blue-400">0.00</div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Сделок</div><div id="today-deals" class="font-semibold">0</div></div>
-            <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="today-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
+            <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="today-avg-percent" class="font-semibold text-blue-400">0%</div></div>
           </div>
           <div class="mt-2 text-xs text-zinc-400">Лучшая сделка</div>
           <div id="best-deal" class="text-amber-400 text-sm font-semibold">—</div>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
-          <h2 class="text-emerald-400 font-semibold mb-3">Цели</h2>
+          <h2 class="text-blue-400 font-semibold mb-3">Цели</h2>
           <label class="text-xs text-zinc-400">День</label>
           <input id="goal-day" type="number" onchange="saveCloud()" class="w-full mt-1 mb-1 bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-1.5 text-white text-sm">
           <div class="progress-bar mb-1"><div id="progress-day" class="progress-fill" style="width:0%"></div></div>
@@ -77,27 +77,27 @@
           <div id="status-month" class="text-xs text-zinc-500">0 / 0</div>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4">
-          <h2 class="text-emerald-400 font-semibold mb-3">Общая статистика</h2>
+          <h2 class="text-blue-400 font-semibold mb-3">Общая статистика</h2>
           <div class="text-xs text-zinc-400">Общая сумма</div>
           <div id="total-sent" class="text-2xl font-bold">0.00</div>
           <div class="text-xs text-zinc-400 mt-2">Чистая прибыль</div>
-          <div id="total-earned" class="text-2xl font-bold text-emerald-400">0.00</div>
+          <div id="total-earned" class="text-2xl font-bold text-blue-400">0.00</div>
           <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
             <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Всего сделок</div><div id="total-deals" class="font-semibold">0</div></div>
-            <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="total-avg-percent" class="font-semibold text-emerald-400">0%</div></div>
+            <div class="bg-black/30 rounded-xl px-2 py-1.5"><div class="text-zinc-400 text-xs">Средний %</div><div id="total-avg-percent" class="font-semibold text-blue-400">0%</div></div>
           </div>
           <div class="mt-2 text-xs text-zinc-400">Рекорд дня</div>
           <div id="record-profit" class="text-lg font-bold text-amber-400">0.00</div>
           <div id="record-date" class="text-xs text-zinc-500"></div>
         </div>
         <div class="neon-card bg-zinc-900/80 rounded-3xl p-4 flex flex-col">
-          <h2 class="text-emerald-400 font-semibold mb-3">История</h2>
+          <h2 class="text-blue-400 font-semibold mb-3">История</h2>
           <div id="history" class="space-y-2 max-h-[430px] overflow-y-auto pr-1 flex-1"></div>
         </div>
       </div>
     </div>
     <div class="mt-5">
-      <div class="bg-emerald-500 rounded-2xl p-5">
+      <div class="bg-blue-500 rounded-2xl p-5">
         <div class="flex justify-between items-center mb-2">
           <div class="text-black font-bold text-lg">Цель на день</div>
           <div class="text-black font-bold text-lg"><span id="goal-current-big">0</span> / <span id="goal-target-big">2000</span> USDT</div>
@@ -110,17 +110,20 @@
       </div>
     </div>
     <div class="mt-5 neon-card bg-zinc-900/80 rounded-3xl p-5">
-      <h2 class="text-emerald-400 font-semibold mb-4">Календарь активности</h2>
+      <h2 class="text-blue-400 font-semibold mb-4">Календарь активности</h2>
       <div id="activity-calendar" class="overflow-x-auto pb-2"></div>
     </div>
     <div class="mt-5 neon-card bg-zinc-900/80 rounded-2xl p-5">
       <div class="flex justify-between items-center mb-2">
-        <div class="text-emerald-400 font-bold text-lg">Цель: 50 000$ чистой прибыли</div>
-        <div class="text-white font-bold text-lg"><span id="life-goal-current">0</span> / 50000 USDT</div>
+        <div>
+          <div class="text-blue-400 font-bold text-lg">Цель: 30 000$ чистой прибыли</div>
+          <div class="text-zinc-400 text-sm">до 31.12.2026</div>
+        </div>
+        <div class="text-white font-bold text-lg"><span id="life-goal-current">0</span> / 30000 USDT</div>
       </div>
       <div class="progress-bar" style="height:14px"><div id="life-goal-progress" class="progress-fill" style="width:0%"></div></div>
       <div class="flex justify-between mt-2 text-zinc-400 text-sm font-medium">
-        <span id="life-goal-status">Осталось 50000 USDT</span>
+        <span id="life-goal-status">Осталось 30000 USDT до 31.12.2026</span>
         <span id="life-goal-percent">0%</span>
       </div>
     </div>
@@ -194,7 +197,7 @@ function saveCloud() {
   setStatus("Сохранено на этом устройстве");
 }
 function setStatus(t) { const el = document.getElementById("save-status"); if (el) el.textContent = t; }
-async function restoreLostBase() { applyBase90100(); await saveCloud(); renderAll(); alert("База: 90100 / прибыль 32000. К цели 50000$ не добавлено."); }
+async function restoreLostBase() { applyBase90100(); await saveCloud(); renderAll(); alert("База: 90100 / прибыль 32000. К цели 30000$ не добавлено."); }
 async function calculate() {
   const amount = parseFloat(document.getElementById("amount").value);
   const sentByMe = parseFloat(document.getElementById("sentByMe").value);
@@ -248,15 +251,15 @@ function renderAll() {
   document.getElementById("goal-current-big").textContent = tProfit.toFixed(0);
   document.getElementById("goal-percent-big").textContent = Math.round(pDay) + "%";
   document.getElementById("goal-status-big").textContent = tProfit >= goals.day ? "Цель достигнута!" : ("Осталось " + (goals.day - tProfit).toFixed(0) + " USDT");
-  const lifePct = Math.min((lifeGoalProfit / 50000) * 100, 100);
+  const lifePct = Math.min((lifeGoalProfit / 30000) * 100, 100);
   document.getElementById("life-goal-current").textContent = lifeGoalProfit.toFixed(0);
   document.getElementById("life-goal-progress").style.width = lifePct + "%";
   document.getElementById("life-goal-percent").textContent = Math.round(lifePct) + "%";
-  document.getElementById("life-goal-status").textContent = lifeGoalProfit >= 50000 ? "Цель 50 000$ достигнута!" : ("Осталось " + (50000 - lifeGoalProfit).toFixed(0) + " USDT");
+  document.getElementById("life-goal-status").textContent = lifeGoalProfit >= 30000 ? "Цель 30 000$ достигнута!" : ("Осталось " + (30000 - lifeGoalProfit).toFixed(0) + " USDT до 31.12.2026");
   renderActivityCalendar();
   let html = "";
   historyRecords.forEach((r, i) => {
-    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + " → " + r.sentByMe + '</div><div class="text-emerald-400 font-semibold">' + (r.profit || 0).toFixed(2) + " (" + r.percent + "%)</div></div><button onclick=\"deleteHistoryRecord(" + i + ')\" class="text-red-400">✕</button></div>';
+    html += '<div class="bg-zinc-950 border border-zinc-800 rounded-xl p-2.5 flex justify-between items-start"><div class="text-xs"><div class="text-zinc-500">' + r.date + '</div><div class="text-zinc-300">' + r.amount + " → " + r.sentByMe + '</div><div class="text-blue-400 font-semibold">' + (r.profit || 0).toFixed(2) + " (" + r.percent + "%)</div></div><button onclick=\"deleteHistoryRecord(" + i + ')\" class="text-red-400">✕</button></div>';
   });
   document.getElementById("history").innerHTML = html || '<div class="text-zinc-500 text-sm">Нет записей</div>';
 }
