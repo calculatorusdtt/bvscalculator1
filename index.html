@@ -148,6 +148,7 @@ function wipeLocal() {
   if (!confirm("Стереть все сделки?")) return;
   localStorage.removeItem(LS_KEY);
   localStorage.removeItem("usdt_base_90100_v1");
+  localStorage.removeItem("usdt_goal_30k_v1");
   records = []; goals = { day: 2000, week: 10000, month: 40000 };
   applyBase90100(); saveCloud(); renderAll();
 }
@@ -179,6 +180,12 @@ function loadCloud() {
   if (!localStorage.getItem("usdt_base_90100_v1")) {
     applyBase90100();
     localStorage.setItem("usdt_base_90100_v1", "1");
+    saveCloud();
+  }
+  if (!localStorage.getItem("usdt_goal_30k_v1")) {
+    lifeGoalProfit = 0;
+    lifeGoalStartedAt = new Date().toISOString();
+    localStorage.setItem("usdt_goal_30k_v1", "1");
     saveCloud();
   }
   if (!lifeGoalStartedAt) lifeGoalStartedAt = new Date().toISOString();
